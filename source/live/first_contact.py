@@ -13,9 +13,6 @@ print("get req made")
 something = resp.json()
 print(something)
 
-json_data = '[{"ID":10,"Name":"Pankaj","Role":"CEO"},' \
-            '{"ID":20,"Name":"David Lee","Role":"Editor"}]'
-
 res_bytes = json.dumps(something).encode('utf-8')
 
 json_object = json.loads(res_bytes)
