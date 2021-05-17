@@ -3,15 +3,17 @@ import requests
 import json
 from requests_toolbelt.utils import dump
 
-# This is the name for the file where the data is saved
+# This is the name for the file where the data is saved, as well as the path
+# The path specifies that the .txt files should be stored in the data/testing folder
 # Also, text after a "#" sign won't be evaluated as code, they're comments
+data_file_path = '../../data/testing/'
 data_file_name = 'datafile_title.txt'
-
+data_file = data_file_path + data_file_name
 
 # This function saves a json 'list' to a file
 # if you change the file name, a new file will be written
 def save_json_to_file(data_to_write):
-	with open(data_file_name, 'w') as outfile:
+	with open(data_file, 'w') as outfile:
 		json.dump(data_to_write, outfile, indent=2)
 	outfile.close()
 
