@@ -9,21 +9,13 @@ url = 'https://api.usaspending.gov/api/v2/recipient/state/'
 resp = requests.get(url)
 print("get req made")
 
-
 something = resp.json()
-print(something)
-
 res_bytes = json.dumps(something).encode('utf-8')
-
 json_object = json.loads(res_bytes)
-
 json_formatted_str = json.dumps(json_object, indent=2)
-
 print(json_formatted_str)
 
 
-
 data = dump.dump_all(resp)
-
 print(data.decode('utf-8'))
 files = data.decode('utf-8')
