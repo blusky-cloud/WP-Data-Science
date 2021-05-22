@@ -13,5 +13,5 @@ Code is currently stored in the source/live folder, the script right now is call
 ### Dependencies
 Thus far, development has been in PyCharm, in virtual environments. We already installed these on your computer, but it's a good idea to document the process for when you need to do it again. The dependencies thus far can be installed with the following command line (terminal) arguments:
 ```bash
-pip install requests && pip install requests-toolbelt
+pip install requests && pip install requests-toolbelt && pip install pandas && pip install beautifulsoup4
 ```
