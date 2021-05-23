@@ -36,7 +36,6 @@ def Append_json_to_file(data_to_write):
 		json.dump(data_to_write, outfile, indent=2)
 	outfile.close()
 
-
 def Pretty_Print_Response(resp):
 	print("NOW PRINTING ENTIRE RESPONSE")
 	data = dump.dump_all(resp)
@@ -53,9 +52,9 @@ def JSON_ify(response_from_server):
 	# This converts the json_object to a form that can be printed to the terminal (string)
 	json_formatted_str = json.dumps(json_object, indent=2)
 	# Print the nicely formatted json data to the terminal
-	print("NOW PRINTING NICELY FORMATTED JSON WE RECEIVED FROM THE SERVER:")
-	print(json_formatted_str)
-	print("NICELY FORMATTED JSON IS DONE PRINTING")
+	#print("NOW PRINTING NICELY FORMATTED JSON WE RECEIVED FROM THE SERVER:")
+	#print(json_formatted_str)
+	#print("NICELY FORMATTED JSON IS DONE PRINTING")
 	return json_from_server
 
 
@@ -72,7 +71,7 @@ def POST_for_new_page(url, body, page):
 	body['page'] = page
 	payload = body
 	resp = requests.post(url, headers=headers, json=payload)
-	print("REQUEST TO SERVER HAS BEEN MADE")
+	#print("REQUEST TO SERVER HAS BEEN MADE")
 	return resp
 
 
@@ -135,6 +134,10 @@ cfda_list_length = len(cfda_num_array)
 url = url_base + spend_by_award
 
 response_from_server = POST(url, body)
+json_response = JSON_ify(response_from_server)
+save_json_to_file(json_response)
+print("FIRST CONTACT MADE")
+
 downloading = True
 page_to_request = 1
 current_cfda_index = 1
@@ -147,17 +150,12 @@ while downloading and current_cfda_index < cfda_list_length:
 
 		response_page = json_response['page_metadata']['page']
 		has_next_page = json_response['page_metadata']['hasNext']
-		print("response page: ")
-		print(response_page)
-		print(has_next_page)
+		#print("response page: ")
+		#print(response_page)
+		#print(has_next_page)
 
-		# here is the function call to both print to terminal and save data to a file
-		if response_page == 1:
-			save_json_to_file(json_response)
-			print("DATA SAVED TO FILE")
-		else:
-			Append_json_to_file(json_response)
-			print("DATA APPENDED TO FILE")
+		Append_json_to_file(json_response)
+		#print("DATA APPENDED TO FILE")
 
 		if has_next_page:
 			downloading = True
@@ -167,8 +165,10 @@ while downloading and current_cfda_index < cfda_list_length:
 			body = CFDA_body_update(body, cfda_num_array[current_cfda_index])
 			current_cfda_index += 1
 			page_to_request = 1
+			print("CFDA: ")
+			print(current_cfda_index)
 
-		sleep(0.01)
+		#sleep(0.25)
 
 	# if things did not go smoothly
 	else:
