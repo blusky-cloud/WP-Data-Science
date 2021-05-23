@@ -1,0 +1,76 @@
+{
+  "category": "cfda",
+  "limit": 10,
+  "page_metadata": {
+    "page": 1,
+    "next": 2,
+    "previous": null,
+    "hasNext": true,
+    "hasPrevious": false
+  },
+  "results": [
+    {
+      "amount": 20292355410.69,
+      "code": "10.069",
+      "id": 10,
+      "name": "Conservation Reserve Program"
+    },
+    {
+      "amount": 1854696109.0,
+      "code": "10.664",
+      "id": 192,
+      "name": "Cooperative Forestry Assistance"
+    },
+    {
+      "amount": 975326383.31,
+      "code": "97.046",
+      "id": 2199,
+      "name": "Fire Management Assistance Grant"
+    },
+    {
+      "amount": 943159275.01,
+      "code": "11.438",
+      "id": 317,
+      "name": "Pacific Coast Salmon Recovery Pacific Salmon Treaty Program"
+    },
+    {
+      "amount": 874863132.05,
+      "code": "11.463",
+      "id": 329,
+      "name": "Habitat Conservation"
+    },
+    {
+      "amount": 565051733.0,
+      "code": "93.143",
+      "id": 1695,
+      "name": "NIEHS Superfund Hazardous Substances_Basic Research and Education"
+    },
+    {
+      "amount": 506448123.74,
+      "code": "15.668",
+      "id": 775,
+      "name": "Coastal Impact Assistance "
+    },
+    {
+      "amount": 481740618.66,
+      "code": "15.035",
+      "id": 570,
+      "name": "Forestry on Indian Lands"
+    },
+    {
+      "amount": 401048595.18,
+      "code": "15.615",
+      "id": 729,
+      "name": "Cooperative Endangered Species Conservation Fund"
+    },
+    {
+      "amount": 375464718.83,
+      "code": "15.231",
+      "id": 625,
+      "name": "Fish, Wildlife and Plant Conservation Resource Management"
+    }
+  ],
+  "messages": [
+    "For searches, time period start and end dates are currently limited to an earliest date of 2007-10-01.  For data going back to 2000-10-01, use either the Custom Award Download feature on the website or one of our download or bulk_download API endpoints as listed on https://api.usaspending.gov/docs/endpoints."
+  ]
+}

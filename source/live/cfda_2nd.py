@@ -141,6 +141,8 @@ class USAspending():
 	api['bulk_download_list_agencies'] = "/api/v2/bulk_download/list_agencies/"
 	api['bulk_download_status'] = "/api/v2/bulk_download/status/"
 	api['spending_by_category_cfda'] = "/api/v2/search/spending_by_category/cfda/"
+	api['spending_by_category'] = "/api/v2/search/spending_by_category/cfda/"
+	api['spending_by_award'] = "/api/v2/search/spending_by_award/"
 
 	USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:65.0) Gecko/20100101 Firefox/65.0"
 	USER_AGENT = "XY"  # solves 406 error on redirect of the biden mailer click link #
@@ -234,9 +236,29 @@ class USAspending():
 		print(f"body: {body}")
 		api_name = "bulk_download_awards"
 		url_api = self.Get_URL_API(api_name)
+
 		print(f"url_api: {url_api}")
 
 		r = requests.post(url_api, headers=headers, json=payload)
+		return self.API_Check_Status(r)
+
+	def Spending_By_Award(self, body={}):
+		headers = {'Content-Type': 'application/json'}
+		payload = body
+		print(f"body: {body}")
+		api_name = "spending_by_award"
+		url_api = self.Get_URL_API(api_name)
+		print(f"url_api: {url_api}")
+		re = requests.post(url_api, headers=headers, json=payload)
+		return self.API_Check_Status(re)
+	def Spend_By_Award_status(self, body={}):
+		headers = {'Content-Type': 'application/json'}
+		payload = body
+		print(f"body: {body}")
+		api_name = 'spending_by_award_status'
+		url_api = self.Get_URL_API(api_name) + "?file_name=" + body['file_name']
+		print(f"url_api: {url_api}")
+		r = requests.get(url_api)  # ! GET not POST
 		return self.API_Check_Status(r)
 
 	def CFDA_Category(self, body={}):
@@ -268,7 +290,6 @@ class USAspending():
 		api_name = 'bulk_download_status'
 		url_api = self.Get_URL_API(api_name) + "?file_name=" + body['file_name']
 		print(f"url_api: {url_api}")
-
 		r = requests.get(url_api)  # ! GET not POST
 		return self.API_Check_Status(r)
 
@@ -305,74 +326,46 @@ pd.DataFrame.to_html(df_api_endpoints)
 '''
 
 spending = USAspending()
-cfda_nums = Read_CFDA_Nums_From_File('CFDA_nums.txt')
-Type_Print_Unknown(cfda_nums)
-'''
-for c in cfda_nums:
-	c = c.replace("\'", "\"")
-	c = c.replace("\n", "")
-	'''
 
 body = {
 	"filters": {
-		"prime_award_types": [
-			"IDV_A",
-			"IDV_B",
-			"IDV_B_A",
-			"IDV_B_B",
-			"IDV_B_C",
-			"IDV_C",
-			"IDV_D",
-			"IDV_E",
-			"02",
-			"03",
-			"04",
-			"05",
-			"06",
-			"07",
-			"08",
-			"09",
-			"10",
-			"11",
-			"A",
-			"B",
-			"C",
-			"D",
+		"time_period": [
+			{"start_date": "2012-10-01", "end_date": "2013-09-30"},
+			{"start_date": "2013-10-01", "end_date": "2014-09-30"},
+			{"start_date": "2014-10-01", "end_date": "2015-09-30"},
+			{"start_date": "2015-10-01", "end_date": "2016-09-30"},
+			{"start_date": "2016-10-01", "end_date": "2017-09-30"},
+			{"start_date": "2017-10-01", "end_date": "2018-09-30"},
+			{"start_date": "2007-10-01", "end_date": "2008-09-30"},
+			{"start_date": "2018-10-01", "end_date": "2019-09-30"},
+			{"start_date": "2008-10-01", "end_date": "2009-09-30"},
+			{"start_date": "2019-10-01", "end_date": "2020-09-30"},
+			{"start_date": "2009-10-01", "end_date": "2010-09-30"},
+			{"start_date": "2020-10-01", "end_date": "2021-09-30"},
+			{"start_date": "2010-10-01", "end_date": "2011-09-30"},
+			{"start_date": "2011-10-01", "end_date": "2012-09-30"}
+		],
+		"award_type_codes": [
+			"02", "03", "04", "05"
 		],
 		"program_numbers": [
-			"10.069", "10.46", "10.664"
-		],
-		"date_range": {
-			"start_date": "2018-10-01",
-			"end_date": "2019-09-30"
-		},
-		"date_type": "action_date"
-	}
+			"10.664"
+		]
+	},
+	"fields": [
+		"Award ID", "Recipient Name", "Start Date", "End Date", "Award Amount", "Description", "def_codes",
+		"COVID-19 Obligations", "COVID-19 Outlays", "Awarding Agency", "Awarding Sub Agency", "Award Type",
+		"recipient_id", "prime_award_recipient_id"
+	],
+	"page": 2,
+	"limit": 60,
+	"sort": "Award Amount",
+	"order": "desc",
+	"subawards": False
 }
 
-json_body = json.loads(json.dumps(body))
-list_json = cfda_nums
-print(type(json_body))
-
-json_body["filters"]["program_numbers"] = list_json
-Type_Print_Unknown(json_body)
-# body = json_body
-
-'''
-i=0
-while i<len(cfda_nums):
-	str_to_append = "\"" + str(cfda_nums[i]) + "\""
-	body["filters"]["program_numbers"].append(str_to_append)
-	i+=1
-'''
-
-# Convert_Newlines_To_Commas("CFDA_nums.txt")
-
-# with open(download_file_name, 'wb') as output:
-#	output.write(r.content)
-
 print("---NOW REQ BULK DOWNLOAD---")
-download_info = spending.Bulk_Download(body=body)
+download_info = spending.Spending_By_Award(body=body)
 Type_Print_Unknown(download_info)
 
 download_file_name = download_info['file_name']
