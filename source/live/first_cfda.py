@@ -11,9 +11,17 @@ from time import sleep
 # If you're running this locally, just keep the name in the save_json_to_file function
 # As "data_file_name" and it will save in whatever folder the python script is stored
 data_file_path = '../../data/testing/'
-data_file_name = '10-664_whole_cfda_test.txt'
+data_file_name = 'all_cfda_in_list_1.txt'
 data_file = data_file_path + data_file_name  # will error without data and testing folders
 
+
+def Read_CFDA_Nums_From_File(file):
+	with open(file) as f:
+		array = []
+		d = {}
+		for line in f:  # read rest of lines
+			array.append(float(line))
+	return array
 
 # This function saves a json 'list' to a file
 # if you change the file name, a new file will be written
@@ -33,7 +41,7 @@ def Pretty_Print_Response(resp):
 	print("NOW PRINTING ENTIRE RESPONSE")
 	data = dump.dump_all(resp)
 	print(data.decode('utf-8'))
-	files = data.decode('utf-8')
+
 
 def JSON_ify(response_from_server):
 	# This line extracts the JSON data out of the message we got from the server
@@ -68,6 +76,11 @@ def POST_for_new_page(url, body, page):
 	return resp
 
 
+def CFDA_body_update(bdy, cf):
+	bdy['filters']['program_numbers'][0] = json.dumps(cf)
+	return bdy
+
+
 url_base = 'https://api.usaspending.gov'
 state_1_url = '/api/v2/recipient/state/'
 cfda_all_totals_url = '/api/v2/references/cfda/totals/'
@@ -97,7 +110,7 @@ body = {
 			"02", "03", "04", "05"
 		],
 		"program_numbers": [
-			"10.664"
+			"10.069"
 		]
 	},
 	"fields": [
@@ -113,13 +126,21 @@ body = {
 	"subawards": False
 }
 
+cfda_num_array = Read_CFDA_Nums_From_File('CFDA_nums.txt')
+#print(cfda_num_array)
+#print(json.dumps(CFDA_body_update(body, cfda_num_array[1]), indent=2))
+
+cfda_list_length = len(cfda_num_array)
+
 url = url_base + spend_by_award
 
 response_from_server = POST(url, body)
 downloading = True
 page_to_request = 1
+current_cfda_index = 1
 
-while downloading:
+
+while downloading and current_cfda_index < cfda_list_length:
 	if response_from_server.status_code == 200:
 		response_from_server = POST_for_new_page(url, body, page_to_request)
 		json_response = JSON_ify(response_from_server)
@@ -141,9 +162,13 @@ while downloading:
 		if has_next_page:
 			downloading = True
 			page_to_request += 1
+
 		else:
-			downloading = False
-		sleep(1)
+			body = CFDA_body_update(body, cfda_num_array[current_cfda_index])
+			current_cfda_index += 1
+			page_to_request = 1
+
+		sleep(0.01)
 
 	# if things did not go smoothly
 	else:
