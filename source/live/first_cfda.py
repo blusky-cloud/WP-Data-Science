@@ -29,6 +29,12 @@ def Append_json_to_file(data_to_write):
 	outfile.close()
 
 
+def Pretty_Print_Response(resp):
+	print("NOW PRINTING ENTIRE RESPONSE")
+	data = dump.dump_all(resp)
+	print(data.decode('utf-8'))
+	files = data.decode('utf-8')
+
 def JSON_ify(response_from_server):
 	# This line extracts the JSON data out of the message we got from the server
 	json_from_server = response_from_server.json()
@@ -123,15 +129,6 @@ while downloading:
 		print("response page: ")
 		print(response_page)
 		print(has_next_page)
-
-		print("NOW PRINTING ENTIRE RESPONSE:")
-		# This will print the entire response from the server, not just the JSON
-		data = dump.dump_all(response_from_server)
-		print(data.decode('utf-8'))
-		files = data.decode('utf-8')
-		# This is where we make a GET request to the server at the specified url
-
-		json_response = JSON_ify(response_from_server)
 
 		# here is the function call to both print to terminal and save data to a file
 		if response_page == 1:
