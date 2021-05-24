@@ -11,11 +11,10 @@ from time import sleep
 # If you're running this locally, just keep the name in the save_json_to_file function
 # As "data_file_name" and it will save in whatever folder the python script is stored
 data_file_path = '../../data/testing/'
-data_file_name = 'all_cfda_in_list_4_formatted.txt'
+data_file_name = 'single_page1.txt'
+csv_file_name = 'single_page1_csv.csv'
 data_file = data_file_path + data_file_name  # will error without data and testing folders
-csv_file_name = 'ALL_CFDA_CSV_1.csv'
 csv_file = data_file_path + csv_file_name
-
 
 def Write_CSV(json_in):
 
@@ -39,19 +38,26 @@ def Write_CSV(json_in):
 
 	data_file.close()
 
-
 def Append_CSV(json_in):
 	results = json_in['results']
 	# now we will open a file for writing
-	data_file = open(csv_file, 'a')
+	data_file = open(csv_file, 'w')
 	# create the csv writer object
 	csv_writer = csv.writer(data_file)
 	# Counter variable used for writing
 	# headers to the CSV file
+	count = 0
 	for res in results:
-		csv_writer.writerow(res.values())
-	data_file.close()
+		if count == 0:
+			# Writing headers of CSV file
+			header = res.keys()
+			csv_writer.writerow(header)
+			count += 1
 
+		# Writing data of CSV file
+		csv_writer.writerow(res.values())
+
+	data_file.close()
 
 def Read_CFDA_Nums_From_File(file):
 	with open(file) as f:
@@ -179,78 +185,15 @@ url = url_base + spend_by_award
 
 response_from_server = POST(url, body)
 json_response = JSON_ify(response_from_server)
-#save_json_to_file(json_response)
-Write_CSV(json_response)
 
-#Append_comma()
+print(type(json_response))
+Write_CSV(json_response)
+#save_json_to_file(json_response)
 print("FIRST CONTACT MADE")
 
 downloading = True
 page_to_request = 1
 current_cfda_index = 1
 
-
-while downloading and current_cfda_index < cfda_list_length:
-	if response_from_server.status_code == 200:
-		response_from_server = POST_for_new_page(url, body, page_to_request)
-		json_response = JSON_ify(response_from_server)
-
-
-		response_page = json_response['page_metadata']['page']
-		has_next_page = json_response['page_metadata']['hasNext']
-		#print("response page: ")
-		#print(response_page)
-		#print(has_next_page)
-
-		#Append_json_to_file(json_response)
-		#Append_comma()
-		try:
-			Append_CSV(json_response)
-		except UnicodeEncodeError:
-			print("unicode encode error")
-
-		#print("DATA APPENDED TO FILE")
-
-		if has_next_page:
-			downloading = True
-			page_to_request += 1
-
-		else:
-			body = CFDA_body_update(body, cfda_num_array[current_cfda_index])
-			current_cfda_index += 1
-			page_to_request = 1
-			print("CFDA: ")
-			print(current_cfda_index)
-
-		#sleep(0.25)
-
-	# if things did not go smoothly
-	else:
-
-		print("NOW PRINTING ENTIRE RESPONSE AS ERROR:")
-		print(type(response_from_server))
-		# This will print the entire response from the server, not just the JSON
-		data = dump.dump_all(response_from_server)
-		print(data.decode('utf-8'))
-		files = data.decode('utf-8')
-		downloading = False
-		sleep(1)
-
-'''
-print("NOW PRINTING ENTIRE RESPONSE:")
-# This will print the entire response from the server, not just the JSON
-data = dump.dump_all(response_from_server)
-print(data.decode('utf-8'))
-files = data.decode('utf-8')
-# This is where we make a GET request to the server at the specified url
-
-json_response = JSON_ify(response_from_server)
-
-# here is the function call to both print to terminal and save data to a file
-if (response_page == 1):
-	save_json_to_file(json_response)
-	print("DATA SAVED TO FILE")
-'''
-print("now saving huge ass file")
 
 print("DONE")
