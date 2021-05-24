@@ -21,7 +21,7 @@ def Write_CSV(json_in):
 
 	results = json_in['results']
 	# now we will open a file for writing
-	data_file = open(csv_file, 'w')
+	data_file = open(csv_file, 'w', newline='')
 	# create the csv writer object
 	csv_writer = csv.writer(data_file)
 	# Counter variable used for writing
@@ -43,7 +43,7 @@ def Write_CSV(json_in):
 def Append_CSV(json_in):
 	results = json_in['results']
 	# now we will open a file for writing
-	data_file = open(csv_file, 'a')
+	data_file = open(csv_file, 'a', newline='')
 	# create the csv writer object
 	csv_writer = csv.writer(data_file)
 	# Counter variable used for writing
