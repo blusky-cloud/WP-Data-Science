@@ -11,7 +11,7 @@ from time import sleep
 # If you're running this locally, just keep the name in the save_json_to_file function
 # As "data_file_name" and it will save in whatever folder the python script is stored
 data_file_path = '../../data/testing/'
-data_file_name = 'all_cfda_in_list_1.txt'
+data_file_name = 'all_cfda_in_list_3_formatted.txt'
 data_file = data_file_path + data_file_name  # will error without data and testing folders
 
 
@@ -28,6 +28,12 @@ def Read_CFDA_Nums_From_File(file):
 def save_json_to_file(data_to_write):
 	with open(data_file, 'w') as outfile:
 		json.dump(data_to_write, outfile, indent=2)
+	outfile.close()
+
+
+def Append_comma():
+	with open(data_file, 'a') as outfile:
+		outfile.write(',')
 	outfile.close()
 
 
@@ -148,6 +154,7 @@ while downloading and current_cfda_index < cfda_list_length:
 		response_from_server = POST_for_new_page(url, body, page_to_request)
 		json_response = JSON_ify(response_from_server)
 
+
 		response_page = json_response['page_metadata']['page']
 		has_next_page = json_response['page_metadata']['hasNext']
 		#print("response page: ")
@@ -155,6 +162,8 @@ while downloading and current_cfda_index < cfda_list_length:
 		#print(has_next_page)
 
 		Append_json_to_file(json_response)
+		Append_comma()
+
 		#print("DATA APPENDED TO FILE")
 
 		if has_next_page:
@@ -197,5 +206,6 @@ if (response_page == 1):
 	save_json_to_file(json_response)
 	print("DATA SAVED TO FILE")
 '''
+print("now saving huge ass file")
 
 print("DONE")
