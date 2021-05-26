@@ -4,8 +4,9 @@ import json
 from requests_toolbelt.utils import dump
 from time import sleep
 
-cfda_list_file = 'Updated_CFDA_list_noDuplicates.txt.txt'
+cfda_list_file = 'Updated_CFDA_list_noDuplicates.txt'
 new_cfda_list_file = 'Updated_CFDA_list_noDuplicates.txt'
+state_pop_csv = 'census2019statePopulationsDownloaded.csv'
 
 
 def Read_CFDA_Nums_From_File(file):
@@ -33,10 +34,16 @@ def Write_CFDA_list(file, list):
 			outfile.write('\n')
 
 
-original_cfda_list = Read_CFDA_Nums_From_File(cfda_list_file)
-print(original_cfda_list)
+def StatePopReader(file):
+	state_pops = {}
+	with open(file, newline='') as csvfile:
+		reader = csv.DictReader(csvfile)
 
-edited_cfda_list = Eliminate_duplicate_CFDAs(original_cfda_list)
-print(edited_cfda_list)
+	csvfile.close()
+	return reader
 
-Write_CFDA_list(new_cfda_list_file, edited_cfda_list)
+
+pops = StatePopReader(state_pop_csv)
+
+data = json.dumps(pops)
+print(data)
