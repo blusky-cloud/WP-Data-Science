@@ -38,12 +38,19 @@ def Write_CSV(json_in, csv_file):
 		if count == 0:
 			# Writing headers of CSV file
 			header = res.keys()
-			csv_writer.writerow(header)
+			try:
+				csv_writer.writerow(header)
+			except UnicodeEncodeError:
+				print("count0 Write UnicodeEncodeError")
 			count += 1
-
-		# Writing data of CSV file
-		csv_writer.writerow(res.values())
-
+		else:
+			# Writing data of CSV file
+			try:
+				csv_writer.writerow(res.values())
+			except UnicodeEncodeError:
+				print("Write UnicodeEncodeError")
+				print("award ID: ", res['Award ID'])
+				unicode_encode_award_ids(res['Award ID'])
 	data_file.close()
 
 
@@ -88,6 +95,13 @@ def JSON_ify(response_from_server):
 	#print(json_formatted_str)
 	#print("NICELY FORMATTED JSON IS DONE PRINTING")
 	return json_from_server
+
+
+def unicode_encode_award_ids(id):
+	with open('unicode_encode_error_award_ids.txt', 'a', newline='') as log:
+		log.write(id)
+		log.write("\n")
+	log.close()
 
 
 def POST(url, body):
@@ -157,7 +171,7 @@ body = {
 	"subawards": False
 }
 
-cfda_num_array = Read_CFDA_Nums_From_File('Updated_CFDA_list_noDuplicates.txt')
+cfda_num_array = Read_CFDA_Nums_From_File('operating_cfda.txt')
 #print(cfda_num_array)
 #print(json.dumps(CFDA_body_update(body, cfda_num_array[0]), indent=2))
 body = CFDA_body_update(body, cfda_num_array[0])
@@ -197,7 +211,7 @@ while downloading and current_cfda_index < cfda_list_length:
 		json_response = JSON_ify(response_from_server)
 		response_page = json_response['page_metadata']['page']
 		has_next_page = json_response['page_metadata']['hasNext']
-		print("response page: ", response_page)
+		# print("response page: ", response_page)
 
 		if page_to_request == 1:
 			print("new cfda file being created")
