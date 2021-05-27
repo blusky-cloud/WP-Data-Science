@@ -41,12 +41,38 @@ def read_csv(file):
 	csvfile.close()
 	return arr
 
+
+def append_sum_strs(qty, addend):
+	#print(" APPEND ADDING, original: ", qty, ", addend: ", addend)
+	fqty = round(float(qty), 6) # trial and error determined 6 places eliminated the long trailing decminal problems
+	faddend = round(float(addend), 6)
+	result = fqty + faddend
+	#print("float converted qty: ", fqty, ", float convert addend: ", faddend, ", float result: ", result)
+	#print("string result: ", str(result))
+	return str(result)
+
+
+def tally_state_totals(cfda_csv_list, state_list):
+	for row in cfda_csv_list:
+		if row[-4] == 'USA':
+			# print("state: ", row[-5], " value: ", row[5])
+			for state in state_list:
+				if state[2] == row[-5]:
+					state[4] = append_sum_strs(state[4], row[5])
+	return state_list
+
+
+# --------------------------------------------------------------------------------
+#         STUFF HAPPENS NOW
+# --------------------------------------------------------------------------------
+
+
 cfda_index = 0
 cfda_array = Read_CFDA_Nums_From_File(cfda_list_file)
 cfda_file_contents = read_csv(set_CFDA_filename(cfda_array[cfda_index]))
 #print(cfda_file_contents)
 print("--------------------------------------------------")
-
+print(cfda_file_contents[0][5])
 #print(cfda_file_contents[1][-4])
 #print(len(cfda_file_contents))
 
@@ -59,16 +85,23 @@ per_cap_list = pops_list
 
 spent = '0.00'
 per_cap_spent = '0.00'
+rank = '0'
 
 per_cap_list[0].append('CFDA')
 per_cap_list[0].append('Total Spending')
 per_cap_list[0].append('Per Capita Spending')
+per_cap_list[0].append('Per Capita Rank')
 
 for state in per_cap_list[1::]:
 	state.append(cfda_array[cfda_index])
 	state.append(spent)
 	state.append(per_cap_spent)
+	state.append(rank)
+
 print(per_cap_list)
 
+per_cap_list = tally_state_totals(cfda_file_contents, per_cap_list)
 
 
+print("--------------------------------------------------")
+print(per_cap_list)
