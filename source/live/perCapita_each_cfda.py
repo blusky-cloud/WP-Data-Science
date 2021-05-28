@@ -46,7 +46,7 @@ def append_sum_strs(qty, addend):
 	#print(" APPEND ADDING, original: ", qty, ", addend: ", addend)
 	fqty = round(float(qty), 6) # trial and error determined 6 places eliminated the long trailing decminal problems
 	faddend = round(float(addend), 6)
-	result = fqty + faddend
+	result = round((fqty + faddend), 3)
 	#print("float converted qty: ", fqty, ", float convert addend: ", faddend, ", float result: ", result)
 	#print("string result: ", str(result))
 	return str(result)
@@ -165,7 +165,7 @@ while index < len(cfda_array):
 	per_cap_data = per_cap_list[1::]
 
 	for state in per_cap_data:
-		state.append(cfda_array[cfda_index])
+		state.append(cfda_array[index])
 		state.append(spent)
 		state.append(per_cap_spent)
 		state.append(rank)
