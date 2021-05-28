@@ -53,12 +53,12 @@ def append_sum_strs(qty, addend):
 
 
 def divide_strs(numerator, denominator):
-	print(numerator, "/", denominator)
+	#print(numerator, "/", denominator)
 	n = round(float(numerator), 6)
 	d = round(float(denominator.replace(',', '')))
-	print("converted : ", n, "/", d)
+	#print("converted : ", n, "/", d)
 	per_cap = round(n/d, 3)
-	print("result (rounded) :", per_cap, ", as str: ", str(per_cap))
+	#print("result (rounded) :", per_cap, ", as str: ", str(per_cap))
 	return str(per_cap)
 
 
@@ -99,17 +99,46 @@ def Write_CSVList(lst, file):
 	csvfile.close()
 
 
+def log_per_capita(cfda):
+	print("log per capita")
+	print(pops_list)
+	print("------------------------------")
+	working_populations = pops_list
+	print(working_populations)
+	cfda_file_contents = read_csv(set_CFDA_filename(cfda))
+	spent = '0.00'
+	per_cap_spent = '0.00'
+	rank = '0'
+	working_populations[0].append('CFDA')
+	working_populations[0].append('Total Spending')
+	working_populations[0].append('Per Capita Spending')
+	working_populations[0].append('Per Capita Rank')
+	per_cap_data = working_populations[1::]
+	print(working_populations)
+
+	for state in per_cap_data:
+		state.append(cfda)
+		state.append(spent)
+		state.append(per_cap_spent)
+		state.append(rank)
+
+	per_cap_data = tally_state_totals(cfda_file_contents, per_cap_data)
+	per_cap_data = calculate_per_capita_spending(per_cap_data)
+	per_cap_data = rank_states_per_cap_spending(per_cap_data)
+
+	final_list = working_populations + per_cap_data
+	Write_CSVList(final_list, set_state_CFDA_filename(cfda))
+	print("per capita calculated for cfda #: ", cfda)
+
 # --------------------------------------------------------------------------------
 #         STUFF HAPPENS NOW
 # --------------------------------------------------------------------------------
 
-
 cfda_index = 0
 cfda_array = Read_CFDA_Nums_From_File(cfda_list_file)
-cfda_file_contents = read_csv(set_CFDA_filename(cfda_array[cfda_index]))
 #print(cfda_file_contents)
 print("--------------------------------------------------")
-print(cfda_file_contents[0][5])
+
 #print(cfda_file_contents[1][-4])
 #print(len(cfda_file_contents))
 
@@ -117,36 +146,37 @@ print(cfda_file_contents[0][5])
 	#print("USA id")
 	#print(cfda_file_contents[1][-5])
 
-pops_list = read_csv(state_pops_file)
-per_cap_list = pops_list
 
-spent = '0.00'
-per_cap_spent = '0.00'
-rank = '0'
+index = 0
+while index < len(cfda_array):
+	print(cfda_array[index])
+	cfda_file_contents = read_csv(set_CFDA_filename(cfda_array[index]))
+	pops_list = read_csv(state_pops_file)
+	per_cap_list = pops_list
 
-per_cap_list[0].append('CFDA')
-per_cap_list[0].append('Total Spending')
-per_cap_list[0].append('Per Capita Spending')
-per_cap_list[0].append('Per Capita Rank')
-per_cap_data = per_cap_list[1::]
-print(per_cap_data)
+	spent = '0.00'
+	per_cap_spent = '0.00'
+	rank = '0'
 
-for state in per_cap_data:
-	state.append(cfda_array[cfda_index])
-	state.append(spent)
-	state.append(per_cap_spent)
-	state.append(rank)
+	per_cap_list[0].append('CFDA')
+	per_cap_list[0].append('Total Spending')
+	per_cap_list[0].append('Per Capita Spending')
+	per_cap_list[0].append('Per Capita Rank')
+	per_cap_data = per_cap_list[1::]
 
-print(per_cap_data)
+	for state in per_cap_data:
+		state.append(cfda_array[cfda_index])
+		state.append(spent)
+		state.append(per_cap_spent)
+		state.append(rank)
 
-per_cap_data = tally_state_totals(cfda_file_contents, per_cap_data)
-per_cap_data = calculate_per_capita_spending(per_cap_data)
-per_cap_data = rank_states_per_cap_spending(per_cap_data)
 
-print(per_cap_data)
-final_list = per_cap_list + per_cap_data
-print("final list: ", final_list)
+	per_cap_data = tally_state_totals(cfda_file_contents, per_cap_data)
+	per_cap_data = calculate_per_capita_spending(per_cap_data)
+	per_cap_data = rank_states_per_cap_spending(per_cap_data)
 
-Write_CSVList(final_list, set_state_CFDA_filename(cfda_array[cfda_index]))
+	final_list = per_cap_list[:1:] + per_cap_data
 
+	Write_CSVList(final_list, set_state_CFDA_filename(cfda_array[index]))
+	index += 1
 print("--------------------------------------------------")
