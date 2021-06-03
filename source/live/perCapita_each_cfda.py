@@ -79,12 +79,19 @@ def calculate_per_capita_spending(state_list):
 
 
 def get_per_cap(state):
-	return state[5]
+	return float(state[5])
 
 def rank_states_per_cap_spending(state_list):
-	state_list.sort(key=lambda cap: cap[5], reverse=True)
-	for state in state_list:
-		state[6] = str(state_list.index(state) + 1)
+	list_to_check = []
+	new_list = []
+	compare = 0.00
+	# list2 = sorted(state_list, key=get_per_cap)
+	# print(list2)
+	state_list.sort(key=get_per_cap, reverse=True)
+	print("sorted: ", state_list)
+	for s in state_list:
+		s[6] = str(state_list.index(s) + 1)
+	print("state list: ", state_list)
 	return state_list
 
 
@@ -98,37 +105,6 @@ def Write_CSVList(lst, file):
 			csv_writer.writerow(res)
 	csvfile.close()
 
-
-def log_per_capita(cfda):
-	print("log per capita")
-	print(pops_list)
-	print("------------------------------")
-	working_populations = pops_list
-	print(working_populations)
-	cfda_file_contents = read_csv(set_CFDA_filename(cfda))
-	spent = '0.00'
-	per_cap_spent = '0.00'
-	rank = '0'
-	working_populations[0].append('CFDA')
-	working_populations[0].append('Total Spending')
-	working_populations[0].append('Per Capita Spending')
-	working_populations[0].append('Per Capita Rank')
-	per_cap_data = working_populations[1::]
-	print(working_populations)
-
-	for state in per_cap_data:
-		state.append(cfda)
-		state.append(spent)
-		state.append(per_cap_spent)
-		state.append(rank)
-
-	per_cap_data = tally_state_totals(cfda_file_contents, per_cap_data)
-	per_cap_data = calculate_per_capita_spending(per_cap_data)
-	per_cap_data = rank_states_per_cap_spending(per_cap_data)
-
-	final_list = working_populations + per_cap_data
-	Write_CSVList(final_list, set_state_CFDA_filename(cfda))
-	print("per capita calculated for cfda #: ", cfda)
 
 # --------------------------------------------------------------------------------
 #         STUFF HAPPENS NOW
@@ -149,6 +125,7 @@ print("--------------------------------------------------")
 
 index = 0
 while index < len(cfda_array):
+#while index < 1:
 	print(cfda_array[index])
 	cfda_file_contents = read_csv(set_CFDA_filename(cfda_array[index]))
 	pops_list = read_csv(state_pops_file)
@@ -169,7 +146,6 @@ while index < len(cfda_array):
 		state.append(spent)
 		state.append(per_cap_spent)
 		state.append(rank)
-
 
 	per_cap_data = tally_state_totals(cfda_file_contents, per_cap_data)
 	per_cap_data = calculate_per_capita_spending(per_cap_data)
