@@ -88,10 +88,10 @@ def rank_states_per_cap_spending(state_list):
 	# list2 = sorted(state_list, key=get_per_cap)
 	# print(list2)
 	state_list.sort(key=get_per_cap, reverse=True)
-	print("sorted: ", state_list)
+	# print("sorted: ", state_list)
 	for s in state_list:
 		s[6] = str(state_list.index(s) + 1)
-	print("state list: ", state_list)
+	# print("state list: ", state_list)
 	return state_list
 
 
