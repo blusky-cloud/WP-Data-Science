@@ -1,7 +1,7 @@
 # WP-Data-Science
 Created by Whitman Spitzer 5/17/2021
 
-This is a repository for code relating to the analysis of Federal Spending Data using Python.
+This is a repository for code relating to the analysis of Federal Spending Data using Python Undertaken for Willamette Partnership.
 
 ### Data
 Currently, in the data/testing folder, there is a .txt file with the output of the test request we made.
