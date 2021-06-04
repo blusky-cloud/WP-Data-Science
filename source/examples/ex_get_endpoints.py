@@ -79,8 +79,6 @@ def Get_API_Endpoints():
 
 
 class USAspending():
-	# TODO: refactor and simplify the code (the code in several of the methods is redundant and should be streamlined) for maintainability
-	# TODO: add more tests to confirm it is working correctly and reliably
 
 	url_root = 'https://api.usaspending.gov'  # !! note it is api.usaspending.gov NOT www.usaspending.gov
 	api = {}
