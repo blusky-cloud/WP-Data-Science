@@ -30,6 +30,13 @@ class APIOperator(object):
 			],
 			"program_numbers": [
 				"10.001"
+			],
+			"place_of_performance_locations": [
+				{
+					"country": "USA",
+					"county": "53001",
+					"state": "WA"
+				}
 			]
 		},
 		"fields": [
@@ -46,12 +53,24 @@ class APIOperator(object):
 	}
 	cfda_num_list = []
 
-	def __init__(self):
+	def __init__(self, b=None):
 		print(" initiating APIOperator ")
-		pass
+		if b is not None:
+			self.body = b
+		self.downloading = True
+		self.page_to_request = 1
+		self.is_first_contact = True
+		self.curr_cfda_list_index = 0
+		self.response_from_server = requests.models.Response()
+
+	def __str(self):
+		print("BODY: ", self.body)
 
 	def make_url(self, endpoint):
 		return self.url_root + self.api[endpoint]
+
+	def req_year(self, year):
+
 
 	def read_cfda_list_from_file(self, file):
 		with open(file, 'r') as f:
@@ -59,8 +78,8 @@ class APIOperator(object):
 		f.close()
 		return self.cfda_num_list
 
-	def update_request_body(self, cf):
-		self.body['filters']['program_numbers'][0] = json.dumps(cf)
+	def update_request_body_cfda(self, cfda):
+		self.body['filters']['program_numbers'][0] = json.dumps(cfda)
 		return self.body
 
 	def post_request(self, endpoint):
