@@ -28,15 +28,15 @@ class APIOperator(object):
 			"award_type_codes": [
 				"02", "03", "04", "05"
 			],
-			"program_numbers": [
-				"10.001"
-			],
 			"place_of_performance_locations": [
 				{
 					"country": "USA",
-					"county": "53001",
-					"state": "WA"
+					"state": "OR",
+					"county": "001"
 				}
+			],
+			"program_numbers": [
+				"10.001"
 			]
 		},
 		"fields": [
@@ -46,7 +46,7 @@ class APIOperator(object):
 			"Place of Performance Country Code", "Place of Performance Zip5"
 		],
 		"page": 1,
-		"limit": 100,
+		"limit": 60,
 		"sort": "Award Amount",
 		"order": "desc",
 		"subawards": False
@@ -69,9 +69,6 @@ class APIOperator(object):
 	def make_url(self, endpoint):
 		return self.url_root + self.api[endpoint]
 
-	def req_year(self, year):
-
-
 	def read_cfda_list_from_file(self, file):
 		with open(file, 'r') as f:
 			self.cfda_num_list = f.read().splitlines()
@@ -85,12 +82,21 @@ class APIOperator(object):
 	def post_request(self, endpoint):
 		headers = {'Content-Type': 'application/json'}
 		payload = self.body
-		resp = requests.post(self.make_url(endpoint), headers=headers, json=payload)
-		return resp
+		self.response_from_server = requests.post(self.make_url(endpoint), headers=headers, json=payload)
+		return self.response_from_server
 
 	def post_req_newpage(self, endpoint, page):
 		headers = {'Content-Type': 'application/json'}
 		self.body['page'] = page
 		payload = self.body
-		resp = requests.post(self.make_url(endpoint), headers=headers, json=payload)
-		return resp
+		self.response_from_server = requests.post(self.make_url(endpoint), headers=headers, json=payload)
+		return self.response_from_server
+
+	def pretty_print_server_response(self):
+		print("NOW PRINTING ENTIRE RESPONSE")
+		data = dump.dump_all(self.response_from_server)
+		print(data.decode('utf-8'))
+
+	def test_request(self):
+		self.post_request('spending_by_award')
+		self.pretty_print_server_response()
