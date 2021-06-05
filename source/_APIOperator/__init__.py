@@ -46,7 +46,7 @@ class APIOperator(object):
 			"Place of Performance Country Code", "Place of Performance Zip5"
 		],
 		"page": 1,
-		"limit": 60,
+		"limit": 100,
 		"sort": "Award Amount",
 		"order": "desc",
 		"subawards": False
