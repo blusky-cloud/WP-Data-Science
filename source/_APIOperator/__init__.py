@@ -6,7 +6,11 @@ from requests_toolbelt.utils import dump
 
 class APIOperator(object):
 	url_root = 'https://api.usaspending.gov'
-	api = {'spending_by_award': '/api/v2/search/spending_by_award/'}
+	api = {
+		'spending_by_award': '/api/v2/search/spending_by_award/',
+		'all_cfda_totals': '/api/v2/references/cfda/totals/',
+		'spending_by_category_cfda': "/api/v2/search/spending_by_category/cfda/"
+	}
 	body = {
 		"filters": {
 			"time_period": [
@@ -53,10 +57,15 @@ class APIOperator(object):
 	}
 	cfda_num_list = []
 
-	def __init__(self, b=None):
+	def __init__(self, b=None, cfda_list_file=''):
 		print(" initiating APIOperator ")
+
 		if b is not None:
 			self.body = b
+
+		if cfda_list_file != '':
+			self.cfda_num_list = self.read_cfda_list_from_file(cfda_list_file)
+
 		self.downloading = True
 		self.page_to_request = 1
 		self.is_first_contact = True
@@ -98,5 +107,47 @@ class APIOperator(object):
 		print(data.decode('utf-8'))
 
 	def test_request(self):
-		self.post_request('spending_by_award')
+		self.post_request('all_cfda_totals')
 		self.pretty_print_server_response()
+
+	# this response includes the names for the cfda nums
+	def spending_by_category_cfda(self, body={}, display=True):
+		print("spending by cat: cfda")
+		headers = {'Content-Type': 'application/json'}
+		payload = body
+		print(f"body: {body}")
+		api_name = "spending_by_category_cfda"
+		url_api = self.make_url(api_name)
+		print(f"url_api: {url_api}")
+		r = requests.post(url_api, headers=headers, json=payload)
+		if display:
+			json_from_server = r.json()
+			res_bytes = json.dumps(json_from_server).encode('utf-8')
+			# This loads the bytestream into a json_object
+			json_object = json.loads(res_bytes)
+			# This converts the json_object to a form that can be printed to the terminal (string)
+			json_formatted_str = json.dumps(json_object, indent=2)
+			# Print the nicely formatted json data to the terminal
+			print("NOW PRINTING NICELY FORMATTED JSON WE RECEIVED FROM THE SERVER:")
+			print(json_formatted_str)
+		return r
+
+	# useless
+	def all_cfda_totals(self, display=True):
+		print("all cfda totals")
+		headers = {'Content-Type': 'application/json'}
+		api_name = 'all_cfda_totals'
+		url_api = self.make_url(api_name)
+		print(f"url_api: {url_api}")
+		r = requests.get(url_api)
+		if display:
+			json_from_server = r.json()
+			res_bytes = json.dumps(json_from_server).encode('utf-8')
+			# This loads the bytestream into a json_object
+			json_object = json.loads(res_bytes)
+			# This converts the json_object to a form that can be printed to the terminal (string)
+			json_formatted_str = json.dumps(json_object, indent=2)
+			# Print the nicely formatted json data to the terminal
+			print("NOW PRINTING NICELY FORMATTED JSON WE RECEIVED FROM THE SERVER:")
+			print(json_formatted_str)
+		return r
