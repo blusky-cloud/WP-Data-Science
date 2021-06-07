@@ -2,6 +2,7 @@ import csv
 import requests
 import json
 from requests_toolbelt.utils import dump
+from _api_utils import read_column_from_file
 
 
 class APIOperator(object):
@@ -59,18 +60,17 @@ class APIOperator(object):
 
 	def __init__(self, b=None, cfda_list_file=''):
 		print(" initiating APIOperator ")
-
 		if b is not None:
 			self.body = b
-
 		if cfda_list_file != '':
 			self.cfda_num_list = self.read_cfda_list_from_file(cfda_list_file)
-
 		self.downloading = True
 		self.page_to_request = 1
 		self.is_first_contact = True
 		self.curr_cfda_list_index = 0
 		self.response_from_server = requests.models.Response()
+		self.server_resp_json = {}
+		self.cfda_and_name_list = []
 
 	def __str(self):
 		print("BODY: ", self.body)
@@ -84,9 +84,13 @@ class APIOperator(object):
 		f.close()
 		return self.cfda_num_list
 
-	def update_request_body_cfda(self, cfda):
-		self.body['filters']['program_numbers'][0] = json.dumps(cfda)
-		return self.body
+	def update_request_body_cfda(self, cfda, b=None):
+		if b is not None:
+			b['filters']['program_numbers'][0] = json.dumps(cfda)
+			return b
+		else:
+			self.body['filters']['program_numbers'][0] = json.dumps(cfda)
+			return self.body
 
 	def post_request(self, endpoint):
 		headers = {'Content-Type': 'application/json'}
@@ -101,10 +105,41 @@ class APIOperator(object):
 		self.response_from_server = requests.post(self.make_url(endpoint), headers=headers, json=payload)
 		return self.response_from_server
 
+	def jsonify(self):
+		# This line extracts the JSON data out of the message we got from the server
+		self.server_resp_json = self.response_from_server.json()
+		# This encodes it as a bytestream
+		res_bytes = json.dumps(self.server_resp_json).encode('utf-8')
+		# This loads the bytestream into a json_object
+		json_object = json.loads(res_bytes)
+		return self.server_resp_json
+
 	def pretty_print_server_response(self):
 		print("NOW PRINTING ENTIRE RESPONSE")
 		data = dump.dump_all(self.response_from_server)
 		print(data.decode('utf-8'))
+
+	def pretty_print_server_data(self, s=None):
+		if s is not None:
+			json_from_server = s.json()
+			res_bytes = json.dumps(json_from_server).encode('utf-8')
+			# This loads the bytestream into a json_object
+			json_object = json.loads(res_bytes)
+			# This converts the json_object to a form that can be printed to the terminal (string)
+			json_formatted_str = json.dumps(json_object, indent=2)
+			# Print the nicely formatted json data to the terminal
+			print("NOW PRINTING NICELY FORMATTED JSON WE RECEIVED FROM THE SERVER:")
+			print(json_formatted_str)
+		else:
+			json_from_server = self.response_from_server.json()
+			res_bytes = json.dumps(json_from_server).encode('utf-8')
+			# This loads the bytestream into a json_object
+			json_object = json.loads(res_bytes)
+			# This converts the json_object to a form that can be printed to the terminal (string)
+			json_formatted_str = json.dumps(json_object, indent=2)
+			# Print the nicely formatted json data to the terminal
+			print("NOW PRINTING NICELY FORMATTED JSON WE RECEIVED FROM THE SERVER:")
+			print(json_formatted_str)
 
 	def test_request(self):
 		self.post_request('all_cfda_totals')
@@ -120,16 +155,10 @@ class APIOperator(object):
 		url_api = self.make_url(api_name)
 		print(f"url_api: {url_api}")
 		r = requests.post(url_api, headers=headers, json=payload)
+		self.response_from_server = r
 		if display:
-			json_from_server = r.json()
-			res_bytes = json.dumps(json_from_server).encode('utf-8')
-			# This loads the bytestream into a json_object
-			json_object = json.loads(res_bytes)
-			# This converts the json_object to a form that can be printed to the terminal (string)
-			json_formatted_str = json.dumps(json_object, indent=2)
-			# Print the nicely formatted json data to the terminal
-			print("NOW PRINTING NICELY FORMATTED JSON WE RECEIVED FROM THE SERVER:")
-			print(json_formatted_str)
+			print("spend by cat cfda display")
+			self.pretty_print_server_data()
 		return r
 
 	# useless
@@ -151,3 +180,41 @@ class APIOperator(object):
 			print("NOW PRINTING NICELY FORMATTED JSON WE RECEIVED FROM THE SERVER:")
 			print(json_formatted_str)
 		return r
+
+	def create_name_and_cfda_csv(self, csv_file_to_save, cfda_list_to_access=''):
+		print("create name and cfda csv")
+		spend_by_cat_body = {
+			"filters": {
+				"time_period": [
+					{
+						"start_date": "2019-09-28",
+						"end_date": "2020-09-28"
+					}
+				],
+				"program_numbers": [
+					"10.001"
+				]
+			},
+			"category": "cfda",
+			"limit": 100,
+			"page": 1
+		}
+		name_list_headers = ['CFDA', 'Name']
+		self.cfda_and_name_list.append(name_list_headers)
+		if cfda_list_to_access != '':
+			temp_cfda_list = read_column_from_file(cfda_list_to_access)
+			print("temp_cfda_list", temp_cfda_list)
+		else:
+			temp_cfda_list = self.cfda_num_list
+		i = 0
+		l = len(temp_cfda_list)
+		temp_cfda_num = temp_cfda_list[0]
+		while i < 4:
+			print("loop: ", i)
+			temp_resp = self.spending_by_category_cfda(
+				self.update_request_body_cfda(temp_cfda_list[i], spend_by_cat_body),
+				display=True
+			)
+			print("now pretty printing server data in loop")
+			self.pretty_print_server_data(temp_resp)
+			i += 1
