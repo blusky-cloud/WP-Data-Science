@@ -2,7 +2,7 @@ import csv
 import requests
 import json
 from requests_toolbelt.utils import dump
-from _api_utils import read_column_from_file, write_csv_list_to_file
+from _api_utils import read_column_from_file, write_csv_list_to_file, write_list_to_file
 
 
 class APIOperator(object):
@@ -146,7 +146,7 @@ class APIOperator(object):
 		self.post_request('all_cfda_totals')
 		self.pretty_print_server_response()
 
-	# this response includes the names for the cfda nums
+	# method for a POST taking endpoint whose response includes the names for the cfda nums searched
 	def spending_by_category_cfda(self, body={}, display=True):
 		# print("spending by cat: cfda")
 		headers = {'Content-Type': 'application/json'}
@@ -182,6 +182,8 @@ class APIOperator(object):
 			print(json_formatted_str)
 		return r
 
+	# this creates 2 files, one containing the names for all cfda nums in a given list of cfdas,
+	# and another for the cfda nums for which the response was null
 	def create_name_and_cfda_csv(self, csv_file_to_save, cfda_list_to_access=''):
 		print("create name and cfda csv")
 		spend_by_cat_body = {
@@ -249,4 +251,6 @@ class APIOperator(object):
 
 		print("cfda and name list after loop: ", self.cfda_and_name_list)
 		write_csv_list_to_file(self.cfda_and_name_list, csv_file_to_save)
-		write_csv_list_to_file(error_cfda_list, '../../data/TNC_CFDA_list/cfda_name_error_list.txt')
+		write_list_to_file(error_cfda_list, '../../data/TNC_CFDA_list/cfda_name_error_list.txt')
+
+	# method to create a file containing all the records for a given cfda

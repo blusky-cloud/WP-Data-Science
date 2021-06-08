@@ -22,3 +22,10 @@ def write_csv_list_to_file(lst, file):
 			csv_writer.writerow(res)
 	csvfile.close()
 
+
+def write_list_to_file(lst, file):
+	with open(file, 'w', newline='') as f:
+		for num in lst:
+			f.write(num + '\n')
+	f.close()
+
