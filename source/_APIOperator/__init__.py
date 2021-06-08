@@ -70,6 +70,7 @@ class APIOperator(object):
 		self.curr_cfda_list_index = 0
 		self.response_from_server = requests.models.Response()
 		self.server_resp_json = {}
+		self.server_resp_json_obj = {}
 		self.cfda_and_name_list = []
 
 	def __str(self):
@@ -86,7 +87,7 @@ class APIOperator(object):
 
 	def update_request_body_cfda(self, cfda, b=None):
 		if b is not None:
-			b['filters']['program_numbers'][0] = json.dumps(cfda)
+			b['filters']['program_numbers'][0] = cfda
 			return b
 		else:
 			self.body['filters']['program_numbers'][0] = json.dumps(cfda)
@@ -105,14 +106,14 @@ class APIOperator(object):
 		self.response_from_server = requests.post(self.make_url(endpoint), headers=headers, json=payload)
 		return self.response_from_server
 
-	def jsonify(self):
+	def jsonify(self, re):
 		# This line extracts the JSON data out of the message we got from the server
 		self.server_resp_json = self.response_from_server.json()
 		# This encodes it as a bytestream
 		res_bytes = json.dumps(self.server_resp_json).encode('utf-8')
 		# This loads the bytestream into a json_object
-		json_object = json.loads(res_bytes)
-		return self.server_resp_json
+		self.server_resp_json_obj = json.loads(res_bytes)
+		return re.json()
 
 	def pretty_print_server_response(self):
 		print("NOW PRINTING ENTIRE RESPONSE")
@@ -203,18 +204,26 @@ class APIOperator(object):
 		self.cfda_and_name_list.append(name_list_headers)
 		if cfda_list_to_access != '':
 			temp_cfda_list = read_column_from_file(cfda_list_to_access)
-			print("temp_cfda_list", temp_cfda_list)
 		else:
 			temp_cfda_list = self.cfda_num_list
 		i = 0
 		l = len(temp_cfda_list)
-		temp_cfda_num = temp_cfda_list[0]
-		while i < 4:
-			print("loop: ", i)
+		temp_cfda_num = float(temp_cfda_list[0])
+		print(temp_cfda_num)
+		while i < 2:
+			new_row = []
+			spend_by_cat_body = self.update_request_body_cfda(temp_cfda_list[i], spend_by_cat_body)
 			temp_resp = self.spending_by_category_cfda(
-				self.update_request_body_cfda(temp_cfda_list[i], spend_by_cat_body),
-				display=True
+				spend_by_cat_body,
+				display=False
 			)
+			temp_json = temp_resp.json()
+			print("temp json: ", temp_json)
+			new_row.append(temp_cfda_list[i])
+			print("index test: ", temp_json['results']['name'])
+			new_row.append(temp_json['results']['name'])
+			self.cfda_and_name_list.append(new_row)
 			print("now pretty printing server data in loop")
 			self.pretty_print_server_data(temp_resp)
 			i += 1
+		print("cfda and name list after loop: ", self.cfda_and_name_list)

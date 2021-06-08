@@ -33,4 +33,6 @@ if __name__ == "__main__":
 	main()
 	api = API()
 	api.create_name_and_cfda_csv('', cfda_list_file)
+	print("---------------------------------------------------------")
 	#api.spending_by_category_cfda(spend_by_cat_body)
+
