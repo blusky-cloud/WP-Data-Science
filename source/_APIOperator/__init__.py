@@ -2,7 +2,7 @@ import csv
 import requests
 import json
 from requests_toolbelt.utils import dump
-from _api_utils import read_column_from_file
+from _api_utils import read_column_from_file, write_csv_list_to_file
 
 
 class APIOperator(object):
@@ -106,14 +106,14 @@ class APIOperator(object):
 		self.response_from_server = requests.post(self.make_url(endpoint), headers=headers, json=payload)
 		return self.response_from_server
 
-	def jsonify(self, re):
+	def jsonify(self):
 		# This line extracts the JSON data out of the message we got from the server
 		self.server_resp_json = self.response_from_server.json()
 		# This encodes it as a bytestream
 		res_bytes = json.dumps(self.server_resp_json).encode('utf-8')
 		# This loads the bytestream into a json_object
 		self.server_resp_json_obj = json.loads(res_bytes)
-		return re.json()
+		return self.server_resp_json
 
 	def pretty_print_server_response(self):
 		print("NOW PRINTING ENTIRE RESPONSE")
@@ -148,17 +148,17 @@ class APIOperator(object):
 
 	# this response includes the names for the cfda nums
 	def spending_by_category_cfda(self, body={}, display=True):
-		print("spending by cat: cfda")
+		# print("spending by cat: cfda")
 		headers = {'Content-Type': 'application/json'}
 		payload = body
-		print(f"body: {body}")
+		# print(f"body: {body}")
 		api_name = "spending_by_category_cfda"
 		url_api = self.make_url(api_name)
-		print(f"url_api: {url_api}")
+		# print(f"url_api: {url_api}")
 		r = requests.post(url_api, headers=headers, json=payload)
 		self.response_from_server = r
 		if display:
-			print("spend by cat cfda display")
+			# print("spend by cat cfda display")
 			self.pretty_print_server_data()
 		return r
 
@@ -187,17 +187,27 @@ class APIOperator(object):
 		spend_by_cat_body = {
 			"filters": {
 				"time_period": [
-					{
-						"start_date": "2019-09-28",
-						"end_date": "2020-09-28"
-					}
+					{"start_date": "2012-10-01", "end_date": "2013-09-30"},
+					{"start_date": "2013-10-01", "end_date": "2014-09-30"},
+					{"start_date": "2014-10-01", "end_date": "2015-09-30"},
+					{"start_date": "2015-10-01", "end_date": "2016-09-30"},
+					{"start_date": "2016-10-01", "end_date": "2017-09-30"},
+					{"start_date": "2017-10-01", "end_date": "2018-09-30"},
+					{"start_date": "2007-10-01", "end_date": "2008-09-30"},
+					{"start_date": "2018-10-01", "end_date": "2019-09-30"},
+					{"start_date": "2008-10-01", "end_date": "2009-09-30"},
+					{"start_date": "2019-10-01", "end_date": "2020-09-30"},
+					{"start_date": "2009-10-01", "end_date": "2010-09-30"},
+					{"start_date": "2020-10-01", "end_date": "2021-09-30"},
+					{"start_date": "2010-10-01", "end_date": "2011-09-30"},
+					{"start_date": "2011-10-01", "end_date": "2012-09-30"}
 				],
 				"program_numbers": [
 					"10.001"
 				]
 			},
 			"category": "cfda",
-			"limit": 100,
+			"limit": 1,
 			"page": 1
 		}
 		name_list_headers = ['CFDA', 'Name']
@@ -210,20 +220,33 @@ class APIOperator(object):
 		l = len(temp_cfda_list)
 		temp_cfda_num = float(temp_cfda_list[0])
 		print(temp_cfda_num)
-		while i < 2:
+		error_cfda_list = []
+
+		while i < l:
+			print("new loop: ", i)
 			new_row = []
 			spend_by_cat_body = self.update_request_body_cfda(temp_cfda_list[i], spend_by_cat_body)
 			temp_resp = self.spending_by_category_cfda(
 				spend_by_cat_body,
 				display=False
 			)
-			temp_json = temp_resp.json()
-			print("temp json: ", temp_json)
+			#self.pretty_print_server_response()
+			self.jsonify()
 			new_row.append(temp_cfda_list[i])
-			print("index test: ", temp_json['results']['name'])
-			new_row.append(temp_json['results']['name'])
-			self.cfda_and_name_list.append(new_row)
-			print("now pretty printing server data in loop")
-			self.pretty_print_server_data(temp_resp)
+			#print(new_row)
+			if self.server_resp_json['results']:
+				name = self.server_resp_json['results'][0]['name']
+				# print("name: ", name)
+				new_row.append(name)
+				self.cfda_and_name_list.append(new_row)
+			else:
+				print("NAME ERROR, CFDA: ", temp_cfda_list[i])
+				#self.pretty_print_server_response()
+				new_row.append('NULL')
+				error_cfda_list.append(temp_cfda_list[i])
+				self.cfda_and_name_list.append(new_row)
 			i += 1
+
 		print("cfda and name list after loop: ", self.cfda_and_name_list)
+		write_csv_list_to_file(self.cfda_and_name_list, csv_file_to_save)
+		write_csv_list_to_file(error_cfda_list, '../../data/TNC_CFDA_list/cfda_name_error_list.txt')

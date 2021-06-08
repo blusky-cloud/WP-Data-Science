@@ -10,3 +10,15 @@ def read_column_from_file(file):
 		num_list = f.read().splitlines()
 	f.close()
 	return num_list
+
+
+def write_csv_list_to_file(lst, file):
+	with open(file, 'w', newline='') as csvfile:
+		# create the csv writer object
+		csv_writer = csv.writer(csvfile)
+		# Counter variable used for writing
+		# headers to the CSV file
+		for res in lst:
+			csv_writer.writerow(res)
+	csvfile.close()
+

@@ -28,11 +28,11 @@ spend_by_cat_body = {
 tnc_path_root = '../../data/TNC_CFDA_list'
 reference_path_root = '../../data/reference'
 cfda_list_file = reference_path_root + '/TNC_CFDA_list_formatted.txt'
-
+tnc_cfda_names_list_file = tnc_path_root + '/TNC_CFDA_Names.csv'
 if __name__ == "__main__":
 	main()
 	api = API()
-	api.create_name_and_cfda_csv('', cfda_list_file)
+	api.create_name_and_cfda_csv(tnc_cfda_names_list_file, cfda_list_file)
 	print("---------------------------------------------------------")
 	#api.spending_by_category_cfda(spend_by_cat_body)
 
