@@ -48,7 +48,11 @@ class APIOperator(object):
 			"Award ID", "Recipient Name", "Start Date", "End Date", "Award Amount", "Description", "def_codes",
 			"COVID-19 Obligations", "COVID-19 Outlays", "Awarding Agency", "Awarding Sub Agency", "Award Type",
 			"recipient_id", "prime_award_recipient_id", "CFDA Number", "Place of Performance State Code",
-			"Place of Performance Country Code", "Place of Performance Zip5"
+			"Place of Performance Country Code", "Place of Performance Zip5", "Place of Performance City Code",
+			"Contract Award Type", "Funding Agency Code",
+			"Loan Value", "Prime Award ID", "Prime Recipient Name", "Recipient DUNS Number", "Awarding Agency Code",
+			"Start Date", "End Date", "SAI Number", "Period of Performance Current End Date", "Period of Performance Start Date",
+			"Base Obligation Date", "generated_internal_id", "Issued Date", "Last Modified Date"
 		],
 		"page": 1,
 		"limit": 100,

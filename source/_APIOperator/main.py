@@ -34,5 +34,5 @@ if __name__ == "__main__":
 	api = API()
 	api.create_name_and_cfda_csv(tnc_cfda_names_list_file, cfda_list_file)
 	print("---------------------------------------------------------")
-	#api.spending_by_category_cfda(spend_by_cat_body)
+
 

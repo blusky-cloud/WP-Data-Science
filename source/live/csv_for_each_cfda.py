@@ -10,7 +10,7 @@ from time import sleep
 # This only works if you have data and testing folders like in this repository
 # If you're running this locally, just keep the name in the save_json_to_file function
 # As "data_file_name" and it will save in whatever folder the python script is stored
-data_file_path = '../../data/individual_csv_files_per_cfda/'
+data_file_path = '../../data/TNC_CFDA_list/all_records_for_each_cfda_number/'
 csv_file_name = 'CFDA_'
 curr_cfda_file = data_file_path + csv_file_name
 print(curr_cfda_file)
@@ -159,10 +159,14 @@ body = {
 		]
 	},
 	"fields": [
-		"Award ID", "Recipient Name", "Start Date", "End Date", "Award Amount", "Description", "def_codes",
-		"COVID-19 Obligations", "COVID-19 Outlays", "Awarding Agency", "Awarding Sub Agency", "Award Type",
-		"recipient_id", "prime_award_recipient_id", "CFDA Number", "Place of Performance State Code",
-		"Place of Performance Country Code", "Place of Performance Zip5"
+			"Award ID", "Recipient Name", "Start Date", "End Date", "Award Amount", "Description", "def_codes",
+			"COVID-19 Obligations", "COVID-19 Outlays", "Awarding Agency", "Awarding Sub Agency", "Award Type",
+			"recipient_id", "prime_award_recipient_id", "CFDA Number", "Place of Performance State Code",
+			"Place of Performance Country Code", "Place of Performance Zip5", "Place of Performance City Code",
+			"Contract Award Type", "Funding Agency Code",
+			"Loan Value", "Prime Award ID", "Prime Recipient Name", "Recipient DUNS Number", "Awarding Agency Code",
+			"Start Date", "End Date", "SAI Number", "Period of Performance Current End Date", "Period of Performance Start Date",
+			"Base Obligation Date", "generated_internal_id", "Issued Date", "Last Modified Date"
 	],
 	"page": 1,
 	"limit": 100,
@@ -171,7 +175,7 @@ body = {
 	"subawards": False
 }
 
-cfda_num_array = Read_CFDA_Nums_From_File('operating_cfda.txt')
+cfda_num_array = Read_CFDA_Nums_From_File('../../data/reference/TNC_CFDA_list_formatted.txt')
 #print(cfda_num_array)
 #print(json.dumps(CFDA_body_update(body, cfda_num_array[0]), indent=2))
 body = CFDA_body_update(body, cfda_num_array[0])
