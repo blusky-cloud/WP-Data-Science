@@ -2,7 +2,7 @@ import csv
 import requests
 import json
 from requests_toolbelt.utils import dump
-from _api_utils import read_column_from_file, write_csv_list_to_file, write_list_to_file
+from _api_utils import read_column_from_file, write_csv_list_to_file, write_list_to_file, read_csv
 
 
 class APIOperator(object):
@@ -62,7 +62,7 @@ class APIOperator(object):
 	}
 	cfda_num_list = []
 
-	def __init__(self, b=None, cfda_list_file=''):
+	def __init__(self, b=None, cfda_list_file='', reference_root_path='../../data/reference/'):
 		print(" initiating APIOperator ")
 		if b is not None:
 			self.body = b
@@ -76,12 +76,17 @@ class APIOperator(object):
 		self.server_resp_json = {}
 		self.server_resp_json_obj = {}
 		self.cfda_and_name_list = []
+		self.ref_root_path = reference_root_path
 
 	def __str(self):
 		print("BODY: ", self.body)
 
 	def make_url(self, endpoint):
 		return self.url_root + self.api[endpoint]
+
+	def set_state_state_filename(self, cfda):
+		state_cfda_file = '../../data/analysis/state_breakdown_per_TNC_cfda/state_CFDA_' + str(cfda).replace('.', '') + '.csv'
+		return state_cfda_file
 
 	def read_cfda_list_from_file(self, file):
 		with open(file, 'r') as f:
@@ -257,4 +262,56 @@ class APIOperator(object):
 		write_csv_list_to_file(self.cfda_and_name_list, csv_file_to_save)
 		write_list_to_file(error_cfda_list, '../../data/TNC_CFDA_list/cfda_name_error_list.txt')
 
-	# method to create a file containing all the records for a given cfda
+	def find_state_info(self, state, cfda_state_rank_list):
+		state_name_abbrev = state
+		new_row = []
+		for row in cfda_state_rank_list:
+			if row[2] == state_name_abbrev:
+				new_row = row[4::]
+		return new_row
+
+	def washington_tnc_analysis(self, tnc_ref_csv_file, state_analysis_path, save_as_file):
+		print("washington TNC analysis commencing...")
+		tnc_data = read_csv(tnc_ref_csv_file)
+		wp_cfda_list = read_column_from_file('../live/Updated_CFDA_list_noDuplicates.txt')
+		#print("tnc data from file: ", tnc_data)
+		print("wp cfda list: ", wp_cfda_list)
+		tnc_data[0].insert(3, 'CFDA Name')
+		tnc_data[0].insert(4, 'Total Spending')
+		tnc_data[0].insert(5, 'Total Spending Rank')
+		tnc_data[0].insert(6, 'Per Capita Spending')
+		tnc_data[0].insert(7, 'Per Capita Spending Rank')
+		tnc_data[0].insert(8, 'Awarding Sub Agency')
+		tnc_data[0].insert(9, 'Unique from WP CFDA list?')
+		print("\n\n\nNEW tnc data from file: ", tnc_data[0])
+		final_list = []
+		final_list.append(tnc_data[0])
+
+		for row in tnc_data[1::]:
+			print("cfda: ", row[2])
+			try:
+				temp_row = row
+				for i in range(3, 10):
+					temp_row.insert(i, 'X')
+				cfda_info = read_csv(self.set_state_state_filename(row[2]))
+				state_info_for_cfda = self.find_state_info('WA', cfda_info)
+				print("state info for cfda: ", state_info_for_cfda)
+				unique = 'TRUE'
+				if row[2] in wp_cfda_list:
+					unique = 'FALSE'
+				#print("full row: ", row)
+				'''
+				temp_row = row[:3] + state_info_for_cfda + row[10::]
+				temp_row[9] = unique'''
+				print("temp row initial: ", temp_row)
+				for i in range(6):
+					temp_row[i+3] = state_info_for_cfda[i]
+				temp_row[9] = unique
+				print("new row: ", temp_row)
+				final_list.append(temp_row)
+
+
+			except OSError:
+				print("something went wrong")
+
+		write_csv_list_to_file(final_list, save_as_file)

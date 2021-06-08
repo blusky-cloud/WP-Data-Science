@@ -9,7 +9,7 @@ state_cfda_rankings_file = state_rankings_file_path + state_name + '_' + state_n
 def find_washington_info(state_list, w_list):
 	new_row = []
 	for row in state_list:
-		if row[2] == state_name_abbrev:  # if state abbrev. column is washinton
+		if row[2] == state_name_abbrev:  # if state abbrev. column is washington
 			new_row.append(row[3])
 			new_row.append(row[4])
 			new_row.append(row[5])
@@ -23,13 +23,19 @@ def find_washington_info(state_list, w_list):
 # -------------------------------------------------
 #     DO STUFF HERE
 # -------------------------------------------------
+
 print("Performing Analysis for Washington...")
 
 cfda_index = 0
 cfda_array = p.Read_CFDA_Nums_From_File(p.cfda_list_file)
 #  print(cfda_file_contents)
 print("--------------------------------------------------")
-washington_list = [['CFDA', 'Total Spending', 'Total Spending Rank', 'Per Capita Spending', 'Per Capita Spending Rank']]
+washington_list = [
+	[
+		'CFDA', 'Total Spending',
+		'Total Spending Rank', 'Per Capita Spending', 'Per Capita Spending Rank'
+	]
+]
 print(washington_list[0])
 index = 0
 

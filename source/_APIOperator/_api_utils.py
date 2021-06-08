@@ -12,6 +12,16 @@ def read_column_from_file(file):
 	return num_list
 
 
+def read_csv(file):
+	arr = []
+	with open(file, newline='') as csvfile:
+		reader = csv.reader(csvfile)
+		for row in reader:
+			arr.append(row)
+	csvfile.close()
+	return arr
+
+
 def write_csv_list_to_file(lst, file):
 	with open(file, 'w', newline='') as csvfile:
 		# create the csv writer object
