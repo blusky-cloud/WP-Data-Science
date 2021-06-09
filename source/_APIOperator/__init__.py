@@ -36,7 +36,7 @@ class APIOperator(object):
 			"place_of_performance_locations": [
 				{
 					"country": "USA",
-					"state": "OR",
+					"state": "WA",
 					"county": "001"
 				}
 			],
