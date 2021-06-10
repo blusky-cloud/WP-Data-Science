@@ -474,54 +474,6 @@ class APIOperator(object):
 		resp = self.post_req_newpage(self.make_url('spending_by_award'), 1)
 		self.pretty_print_server_response()
 		print("\n -----now for state only\n")
-		temp_body = {
-			"filters": {
-				"time_period": [
-					{"start_date": "2012-10-01", "end_date": "2013-09-30"},
-					{"start_date": "2013-10-01", "end_date": "2014-09-30"},
-					{"start_date": "2014-10-01", "end_date": "2015-09-30"},
-					{"start_date": "2015-10-01", "end_date": "2016-09-30"},
-					{"start_date": "2016-10-01", "end_date": "2017-09-30"},
-					{"start_date": "2017-10-01", "end_date": "2018-09-30"},
-					{"start_date": "2007-10-01", "end_date": "2008-09-30"},
-					{"start_date": "2018-10-01", "end_date": "2019-09-30"},
-					{"start_date": "2008-10-01", "end_date": "2009-09-30"},
-					{"start_date": "2019-10-01", "end_date": "2020-09-30"},
-					{"start_date": "2009-10-01", "end_date": "2010-09-30"},
-					{"start_date": "2020-10-01", "end_date": "2021-09-30"},
-					{"start_date": "2010-10-01", "end_date": "2011-09-30"},
-					{"start_date": "2011-10-01", "end_date": "2012-09-30"}
-				],
-				"award_type_codes": [
-					"02", "03", "04", "05"
-				],
-				"place_of_performance_locations": [
-					{
-						"country": "USA",
-						"state": "WA"
-					}
-				],
-				"program_numbers": [
-					"10.072"
-				]
-			},
-			"fields": [
-				"Award ID", "Recipient Name", "Start Date", "End Date", "Award Amount", "Description", "def_codes",
-				"Awarding Agency", "Awarding Sub Agency", "Award Type",
-				"recipient_id", "prime_award_recipient_id", "CFDA Number", "Place of Performance State Code",
-				"Place of Performance Country Code", "Place of Performance Zip5", "Place of Performance City Code",
-				"Funding Agency Code", "Recipient DUNS Number", "Awarding Agency Code",
-				"Start Date", "End Date", "SAI Number", "Base Obligation Date", "generated_internal_id",
-				"Issued Date", "Last Modified Date"
-			],
-			"page": 1,
-			"limit": 100,
-			"sort": "Award Amount",
-			"order": "desc",
-			"subawards": False
-		}
-		#resp = self.post_req_newpage(self.make_url('spending_by_award'), 1, temp_body)
-		#self.pretty_print_server_response()
 
 		for county in self.wa_county_names:
 			print("county INFO: ", county, " ", county[1])
