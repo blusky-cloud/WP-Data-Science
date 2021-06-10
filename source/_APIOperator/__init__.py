@@ -491,6 +491,19 @@ class APIOperator(object):
 		print("TOTAL AMOUNT: ", amount)
 		print("\n  Done with County Check")
 
+	def get_total_county(self, list_to_search, county_name):
+		total = 0.00
+		for elem in list_to_search:
+			if elem[-1] == county_name:
+				total += float(elem[5])
+		return str(total)
+
+	def get_per_cap_county(self, list_to_search, county_name, county_pop):
+		total = float(self.get_total_county(list_to_search, county_name))
+		pop = float(county_pop)
+		per_cap = round(float(total/pop), 4)
+		return str(per_cap)
+
 	def analyze_county_data(
 			self,
 			county_ref_file='../../data/reference/WA FIPS + 2019 pop estimates - Sheet1.csv',
@@ -504,15 +517,27 @@ class APIOperator(object):
 			analyzed_county_breakdown[0].append(wp_category_info[0][i])
 		print("county breakdown: ", analyzed_county_breakdown)
 		for county in county_ref_info[1::]:
-			wp_category_info[0].append(county[2] + ', FIPS: ' + county[1] + ", Pop: " + county[3])
 			wp_category_info[0].append(county[2] + ' Total Spending')
 			wp_category_info[0].append(county[2] + ' Total Rank')
 			wp_category_info[0].append(county[2] + ' Per Cap Spending')
 			wp_category_info[0].append(county[2] + ' Per Cap Rank')
 
-		for cfda_num in cfda_num_array[:2]:
-			print("cfda num: ", cfda_num)
-			curr_cfda_file_contents = read_csv(self.set_cfda_filename(cfda_num))
+		for cfda_row in wp_category_info[1:5:]:
+			print("cfda num: ", cfda_row[2])
+			curr_cfda_file_contents = read_csv(self.set_cfda_filename(cfda_row[2]))
+			for county in county_ref_info[1::]:
+				cfda_row.append(self.get_total_county(curr_cfda_file_contents, county[2]))
+				cfda_row.append('x')
+				cfda_row.append(self.get_per_cap_county(curr_cfda_file_contents, county[2], county[3]))
+				cfda_row.append('x')
 			#print("file cfda contents: ", curr_cfda_file_contents)
-
-		#print("\n\nupdated headers: ", wp_category_info[0])
+			print("total spending for cfda ", cfda_row[2], ": ", cfda_row[9])
+			total_spend_check = 0.00
+			for index in cfda_row[20::4]:
+				total_spend_check += float(index)
+				#print("index: ", index)
+			print("added up: ", total_spend_check)
+			if total_spend_check != float(cfda_row[9]):
+				print("ERROR")
+				print("difference: ", round(total_spend_check - float(cfda_row[9]), 3))
+		print("\n\nupdated headers: ", wp_category_info[1])
