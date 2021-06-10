@@ -40,6 +40,7 @@ def Write_CSV(json_in, csv_file):
 			header = res.keys()
 			try:
 				csv_writer.writerow(header)
+				csv_writer.writerow(res.values())
 			except UnicodeEncodeError:
 				print("count0 Write UnicodeEncodeError")
 			count += 1

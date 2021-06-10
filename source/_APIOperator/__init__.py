@@ -357,7 +357,7 @@ class APIOperator(object):
 		write_csv_list_to_file(final_list, save_as_file)
 
 	def pull_records_by_county(self, county_ref_file):
-		cfda_num_array = self.read_cfda_list_from_file('../../data/reference/TNC_CFDA_list_formatted.txt')
+		cfda_num_array = self.read_cfda_list_from_file('../../data/reference/TNC_working_cfda_list.txt')
 		# print(cfda_num_array)
 		county_ref_info = read_csv(county_ref_file)
 		wp_category_info = read_csv('../../data/reference/TNC_list_all_yrs_WA_analysis - re-integrate.csv')
@@ -405,7 +405,7 @@ class APIOperator(object):
 				self.jsonify()
 				json_response = self.server_resp_json
 				# print("\n\n json_response: ", json_response)
-				#self.pretty_print_server_response()
+				# self.pretty_print_server_response()
 				response_page = json_response['page_metadata']['page']
 				has_next_page = json_response['page_metadata']['hasNext']
 				# print("response page: ", response_page)
@@ -414,7 +414,7 @@ class APIOperator(object):
 					write_new_cfda_csv_file(
 						json_response, curr_cfda_file,
 						insert_list=county_ref_info[current_county_index][1:3:])
-					print("county info for file written: ", county_ref_info[current_county_index][1:3:])
+					# print("county info for file written: ", county_ref_info[current_county_index][1:3:])
 					file_written = True
 
 				elif file_written and json_response['results']:
@@ -454,6 +454,7 @@ class APIOperator(object):
 						counties_complete = False
 					except IndexError:
 						print("\n--------- CFDA LIST COMPLETE ")
+						break
 
 
 			# if things did not go smoothly
@@ -483,17 +484,35 @@ class APIOperator(object):
 			resp = self.post_req_newpage(self.make_url('spending_by_award'), 1)
 			self.jsonify()
 			if self.server_resp_json['results']:
-				#self.pretty_print_server_response()
+				# self.pretty_print_server_response()
 				self.pretty_print_server_data()
 				for entry in self.server_resp_json['results']:
 					amount += float(entry['Award Amount'])
 		print("TOTAL AMOUNT: ", amount)
 		print("\n  Done with County Check")
 
-'''
-	def award_download_state_county(self, tnc_ref_csv_file,
-									state_analysis_path,
-									save_as_file,
-									state=''):
-		print("\n AWARD DOWNLOAD")
-'''
+	def analyze_county_data(
+			self,
+			county_ref_file='../../data/reference/WA FIPS + 2019 pop estimates - Sheet1.csv',
+			cfda_county_breakdown_root='../../data/TNC_CFDA_list/WA_Counties/'):
+		print(" analyze county data ")
+		county_ref_info = read_csv(county_ref_file)
+		wp_category_info = read_csv('../../data/reference/TNC_list_all_yrs_WA_analysis - re-integrate.csv')
+		cfda_num_array = self.read_cfda_list_from_file('../../data/reference/TNC_working_cfda_list.txt')
+		analyzed_county_breakdown = [['CFDA #']]
+		for i in range(3, 7):
+			analyzed_county_breakdown[0].append(wp_category_info[0][i])
+		print("county breakdown: ", analyzed_county_breakdown)
+		for county in county_ref_info[1::]:
+			wp_category_info[0].append(county[2] + ', FIPS: ' + county[1] + ", Pop: " + county[3])
+			wp_category_info[0].append(county[2] + ' Total Spending')
+			wp_category_info[0].append(county[2] + ' Total Rank')
+			wp_category_info[0].append(county[2] + ' Per Cap Spending')
+			wp_category_info[0].append(county[2] + ' Per Cap Rank')
+
+		for cfda_num in cfda_num_array[:2]:
+			print("cfda num: ", cfda_num)
+			curr_cfda_file_contents = read_csv(self.set_cfda_filename(cfda_num))
+			#print("file cfda contents: ", curr_cfda_file_contents)
+
+		#print("\n\nupdated headers: ", wp_category_info[0])

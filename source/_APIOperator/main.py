@@ -33,5 +33,6 @@ if __name__ == "__main__":
 	main()
 	api = API()
 	print("-----------------------MAIN-------------------------")
-	api.pull_records_by_county(reference_path_root + 'WA FIPS + 2019 pop estimates - Sheet1.csv')
+	#api.pull_records_by_county(reference_path_root + 'WA FIPS + 2019 pop estimates - Sheet1.csv')
 	#api.individual_county_check('10.072', '001')
+	api.analyze_county_data()

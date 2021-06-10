@@ -41,15 +41,15 @@ def write_list_to_file(lst, file):
 
 
 def write_new_cfda_csv_file(json_in, csv_file, insert_list=None):
-	print("WRITE CFDA (should be 1 per cfda)")
-	print(csv_file)
+	#print("WRITE CFDA (should be 1 per cfda)")
+	#print(csv_file)
 	results = json_in['results']
 	#print("RESULTS FROM WRITE METHOD pre insertion: ", results)
 	if insert_list:
 		for row in results:
 			row['County FIPS Num'] = insert_list[0]
 			row['County Name'] = insert_list[1]
-	print("\n\n-------------------RESULTS FROM WRITE METHOD AFTER insertion: ", results)
+	#print("\n\n-------------------RESULTS FROM WRITE METHOD AFTER insertion: ", results)
 	# now we will open a file for writing
 	data_file = open(csv_file, 'w', newline='')
 	# create the csv writer object
@@ -80,9 +80,9 @@ def write_new_cfda_csv_file(json_in, csv_file, insert_list=None):
 
 
 def append_cfda_csv_file(json_in, csv_file, insert_list=None):
-	print("APPEND FILE: ", csv_file)
+	#print("APPEND FILE: ", csv_file)
 	results = json_in['results']
-	print("\n\n append csv file results type and content: ", type(results), "\n", results)
+	#print("\n\n append csv file results type and content: ", type(results), "\n", results)
 	if insert_list:
 		for row in results:
 			row['County FIPS Num'] = insert_list[0]
