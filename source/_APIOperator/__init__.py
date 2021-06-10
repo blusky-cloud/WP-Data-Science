@@ -416,9 +416,7 @@ class APIOperator(object):
 						insert_list=county_ref_info[current_county_index][1:3:])
 					print("county info for file written: ", county_ref_info[current_county_index][1:3:])
 					file_written = True
-					if county_ref_info[current_county_index][1] == '011':
-						print("\n\nCLARK COUNTY")
-						break
+
 				elif file_written and json_response['results']:
 					try:
 						append_cfda_csv_file(

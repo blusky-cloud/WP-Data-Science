@@ -63,6 +63,7 @@ def write_new_cfda_csv_file(json_in, csv_file, insert_list=None):
 			header = res.keys()
 			try:
 				csv_writer.writerow(header)
+				csv_writer.writerow(res.values())
 			except UnicodeEncodeError:
 				print("count0 Write UnicodeEncodeError")
 			count += 1
@@ -74,6 +75,7 @@ def write_new_cfda_csv_file(json_in, csv_file, insert_list=None):
 				print("Write UnicodeEncodeError")
 				print("award ID: ", res['Award ID'])
 				unicode_encode_award_ids(res['Award ID'])
+
 	data_file.close()
 
 
