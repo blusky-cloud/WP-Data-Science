@@ -33,7 +33,5 @@ if __name__ == "__main__":
 	main()
 	api = API()
 	print("-----------------------MAIN-------------------------")
-	api.washington_tnc_analysis(
-		reference_path_root + 'TNC_CFDA_analysis4WA_raw.csv',
-		reference_path_root + 'state_breakdown_per_TNC_cfda/',
-		tnc_path_root + 'WA_analysis.csv')
+	#api.pull_records_by_county(reference_path_root + 'WA FIPS + 2019 pop estimates - Sheet1.csv')
+	api.individual_county_check('10.072', '001')

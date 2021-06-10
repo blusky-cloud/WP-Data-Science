@@ -10,12 +10,13 @@ from time import sleep
 # This only works if you have data and testing folders like in this repository
 # If you're running this locally, just keep the name in the save_json_to_file function
 # As "data_file_name" and it will save in whatever folder the python script is stored
-data_file_path = '../../data/TNC_CFDA_list/all_records_for_each_cfda_number/'
+data_file_path = '../../data/TNC_CFDA_list/WA_Counties/'
+county_ref_file = '../../data/reference/WA FIPS + 2019 pop estimates - Sheet1.csv'
 csv_file_name = 'CFDA_'
 curr_cfda_file = data_file_path + csv_file_name
 print(curr_cfda_file)
 
-def set_CFDA_filename(cfda):
+def set_CFDA_filename(county, cfda):
 	cfda_file = data_file_path + csv_file_name + str(cfda).replace('.', '') + '.csv'
 	#print("now printing cfda file")
 	#print(cfda_file)
@@ -74,6 +75,17 @@ def Read_CFDA_Nums_From_File(file):
 	f.close()
 	# print(arr)
 	return arr
+
+
+def read_csv(file):
+	arr = []
+	with open(file, newline='') as csvfile:
+		reader = csv.reader(csvfile)
+		for row in reader:
+			arr.append(row)
+	csvfile.close()
+	return arr
+
 
 def Pretty_Print_Response(resp):
 	print("NOW PRINTING ENTIRE RESPONSE")
@@ -166,13 +178,12 @@ body = {
 		},
 		"fields": [
 			"Award ID", "Recipient Name", "Start Date", "End Date", "Award Amount", "Description", "def_codes",
-			"COVID-19 Obligations", "COVID-19 Outlays", "Awarding Agency", "Awarding Sub Agency", "Award Type",
+			"Awarding Agency", "Awarding Sub Agency", "Award Type",
 			"recipient_id", "prime_award_recipient_id", "CFDA Number", "Place of Performance State Code",
 			"Place of Performance Country Code", "Place of Performance Zip5", "Place of Performance City Code",
-			"Contract Award Type", "Funding Agency Code",
-			"Loan Value", "Prime Award ID", "Prime Recipient Name", "Recipient DUNS Number", "Awarding Agency Code",
-			"Start Date", "End Date", "SAI Number", "Period of Performance Current End Date", "Period of Performance Start Date",
-			"Base Obligation Date", "generated_internal_id", "Issued Date", "Last Modified Date"
+			"Funding Agency Code", "Recipient DUNS Number", "Awarding Agency Code",
+			"Start Date", "End Date", "SAI Number", "Base Obligation Date", "generated_internal_id",
+			"Issued Date", "Last Modified Date"
 		],
 		"page": 1,
 		"limit": 100,
@@ -185,7 +196,8 @@ cfda_num_array = Read_CFDA_Nums_From_File('../../data/reference/TNC_CFDA_list_fo
 #print(cfda_num_array)
 #print(json.dumps(CFDA_body_update(body, cfda_num_array[0]), indent=2))
 body = CFDA_body_update(body, cfda_num_array[0])
-
+county_ref_info = read_csv(county_ref_file)
+print("county ref info: ", county_ref_info)
 url = url_base + spend_by_award
 # we start at the first cfda
 current_cfda_index = 0
@@ -211,7 +223,7 @@ downloading = True
 page_to_request = 1
 is_first_contact = True
 response_from_server = requests.models.Response()
-
+'''
 while downloading and current_cfda_index < cfda_list_length:
 
 	if response_from_server.status_code == 200 or is_first_contact:
@@ -256,5 +268,5 @@ while downloading and current_cfda_index < cfda_list_length:
 		files = data.decode('utf-8')
 		downloading = False
 		# sleep(1)
-
+'''
 print("DONE")

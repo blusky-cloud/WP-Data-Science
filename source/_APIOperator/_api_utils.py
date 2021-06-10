@@ -39,3 +39,64 @@ def write_list_to_file(lst, file):
 			f.write(num + '\n')
 	f.close()
 
+
+def write_new_cfda_csv_file(json_in, csv_file, insert_list=None):
+	print("WRITE CFDA (should be 1 per cfda)")
+	print(csv_file)
+	results = json_in['results']
+	#print("RESULTS FROM WRITE METHOD pre insertion: ", results)
+	if insert_list:
+		for row in results:
+			row['County FIPS Num'] = insert_list[0]
+			row['County Name'] = insert_list[1]
+	#print("\n\n-------------------RESULTS FROM WRITE METHOD AFTER insertion: ", results)
+	# now we will open a file for writing
+	data_file = open(csv_file, 'w', newline='')
+	# create the csv writer object
+	csv_writer = csv.writer(data_file)
+	# Counter variable used for writing
+	# headers to the CSV file
+	count = 0
+	for res in results:
+		if count == 0:
+			# Writing headers of CSV file
+			header = res.keys()
+			try:
+				csv_writer.writerow(header)
+			except UnicodeEncodeError:
+				print("count0 Write UnicodeEncodeError")
+			count += 1
+		else:
+			# Writing data of CSV file
+			try:
+				csv_writer.writerow(res.values())
+			except UnicodeEncodeError:
+				print("Write UnicodeEncodeError")
+				print("award ID: ", res['Award ID'])
+				unicode_encode_award_ids(res['Award ID'])
+	data_file.close()
+
+
+def append_cfda_csv_file(json_in, csv_file, insert_list=None):
+	print("APPEND FILE: ", csv_file)
+	results = json_in['results']
+	#print("\n\n append csv file results type and content: ", type(results), "\n", results)
+	if insert_list:
+		for row in results:
+			row['County FIPS Num'] = insert_list[0]
+			row['County Name'] = insert_list[1]
+	# now we will open a file for writing
+	data_file = open(csv_file, 'a', newline='')
+	# create the csv writer object
+	csv_writer = csv.writer(data_file)
+	# Counter variable used for writing
+	# headers to the CSV file
+	for res in results:
+		csv_writer.writerow(res.values())
+	data_file.close()
+
+def unicode_encode_award_ids(id):
+	with open('unicode_encode_error_award_ids.txt', 'a', newline='') as log:
+		log.write(id)
+		log.write("\n")
+	log.close()

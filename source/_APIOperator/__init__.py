@@ -2,7 +2,8 @@ import csv
 import requests
 import json
 from requests_toolbelt.utils import dump
-from _api_utils import read_column_from_file, write_csv_list_to_file, write_list_to_file, read_csv
+from _api_utils import read_column_from_file, write_csv_list_to_file, write_list_to_file, read_csv, \
+	write_new_cfda_csv_file, append_cfda_csv_file
 
 
 class APIOperator(object):
@@ -46,13 +47,12 @@ class APIOperator(object):
 		},
 		"fields": [
 			"Award ID", "Recipient Name", "Start Date", "End Date", "Award Amount", "Description", "def_codes",
-			"COVID-19 Obligations", "COVID-19 Outlays", "Awarding Agency", "Awarding Sub Agency", "Award Type",
+			"Awarding Agency", "Awarding Sub Agency", "Award Type",
 			"recipient_id", "prime_award_recipient_id", "CFDA Number", "Place of Performance State Code",
 			"Place of Performance Country Code", "Place of Performance Zip5", "Place of Performance City Code",
-			"Contract Award Type", "Funding Agency Code",
-			"Loan Value", "Prime Award ID", "Prime Recipient Name", "Recipient DUNS Number", "Awarding Agency Code",
-			"Start Date", "End Date", "SAI Number", "Period of Performance Current End Date", "Period of Performance Start Date",
-			"Base Obligation Date", "generated_internal_id", "Issued Date", "Last Modified Date"
+			"Funding Agency Code", "Recipient DUNS Number", "Awarding Agency Code",
+			"Start Date", "End Date", "SAI Number", "Base Obligation Date", "generated_internal_id",
+			"Issued Date", "Last Modified Date"
 		],
 		"page": 1,
 		"limit": 100,
@@ -62,7 +62,12 @@ class APIOperator(object):
 	}
 	cfda_num_list = []
 
-	def __init__(self, b=None, cfda_list_file='', reference_root_path='../../data/reference/'):
+	def __init__(
+			self,
+			b=None,
+			cfda_list_file='',
+			reference_root_path='../../data/reference/',
+			county_ref_info_path='../../data/reference/WA FIPS + 2019 pop estimates - Sheet1.csv'):
 		print(" initiating APIOperator ")
 		if b is not None:
 			self.body = b
@@ -77,6 +82,8 @@ class APIOperator(object):
 		self.server_resp_json_obj = {}
 		self.cfda_and_name_list = []
 		self.ref_root_path = reference_root_path
+		self.cfda_file_name = ''
+		self.wa_county_names = read_csv(county_ref_info_path)
 
 	def __str(self):
 		print("BODY: ", self.body)
@@ -84,9 +91,14 @@ class APIOperator(object):
 	def make_url(self, endpoint):
 		return self.url_root + self.api[endpoint]
 
-	def set_state_state_filename(self, cfda):
-		state_cfda_file = '../../data/analysis/state_breakdown_per_TNC_cfda/state_CFDA_' + str(cfda).replace('.', '') + '.csv'
+	def set_state_cfda_filename(self, cfda):
+		state_cfda_file = '../../data/analysis/state_breakdown_per_TNC_cfda/state_CFDA_' + str(cfda).replace('.',
+																											 '') + '.csv'
 		return state_cfda_file
+
+	def set_cfda_filename(self, cfda, path='../../data/TNC_CFDA_list/WA_Counties/CFDA_'):
+		self.cfda_file_name = path + str(cfda).replace('.', '') + '.csv'
+		return self.cfda_file_name
 
 	def read_cfda_list_from_file(self, file):
 		with open(file, 'r') as f:
@@ -99,7 +111,15 @@ class APIOperator(object):
 			b['filters']['program_numbers'][0] = cfda
 			return b
 		else:
-			self.body['filters']['program_numbers'][0] = json.dumps(cfda)
+			self.body['filters']['program_numbers'][0] = cfda
+			return self.body
+
+	def update_request_body_county(self, county_code, b=None):
+		if b is not None:
+			b['filters']['place_of_performance_locations'][0]['county'] = county_code
+			return b
+		else:
+			self.body['filters']['place_of_performance_locations'][0]['county'] = county_code
 			return self.body
 
 	def post_request(self, endpoint):
@@ -108,11 +128,11 @@ class APIOperator(object):
 		self.response_from_server = requests.post(self.make_url(endpoint), headers=headers, json=payload)
 		return self.response_from_server
 
-	def post_req_newpage(self, endpoint, page):
+	def post_req_newpage(self, url, page):
 		headers = {'Content-Type': 'application/json'}
 		self.body['page'] = page
 		payload = self.body
-		self.response_from_server = requests.post(self.make_url(endpoint), headers=headers, json=payload)
+		self.response_from_server = requests.post(url, headers=headers, json=payload)
 		return self.response_from_server
 
 	def jsonify(self):
@@ -149,6 +169,26 @@ class APIOperator(object):
 			json_formatted_str = json.dumps(json_object, indent=2)
 			# Print the nicely formatted json data to the terminal
 			print("NOW PRINTING NICELY FORMATTED JSON WE RECEIVED FROM THE SERVER:")
+			print(json_formatted_str)
+
+	def pretty_print_json(self, j={}, body=False):
+		if not body and j:
+			res_bytes = json.dumps(j).encode('utf-8')
+			# This loads the bytestream into a json_object
+			json_object = json.loads(res_bytes)
+			# This converts the json_object to a form that can be printed to the terminal (string)
+			json_formatted_str = json.dumps(json_object, indent=2)
+			# Print the nicely formatted json data to the terminal
+			print("NOW PRINTING NICELY FORMATTED JSON ")
+			print(json_formatted_str)
+		elif body:
+			res_bytes = json.dumps(self.body).encode('utf-8')
+			# This loads the bytestream into a json_object
+			json_object = json.loads(res_bytes)
+			# This converts the json_object to a form that can be printed to the terminal (string)
+			json_formatted_str = json.dumps(json_object, indent=2)
+			# Print the nicely formatted json data to the terminal
+			print("NOW PRINTING NICELY FORMATTED JSON ")
 			print(json_formatted_str)
 
 	def test_request(self):
@@ -241,10 +281,10 @@ class APIOperator(object):
 				spend_by_cat_body,
 				display=False
 			)
-			#self.pretty_print_server_response()
+			# self.pretty_print_server_response()
 			self.jsonify()
 			new_row.append(temp_cfda_list[i])
-			#print(new_row)
+			# print(new_row)
 			if self.server_resp_json['results']:
 				name = self.server_resp_json['results'][0]['name']
 				# print("name: ", name)
@@ -252,7 +292,7 @@ class APIOperator(object):
 				self.cfda_and_name_list.append(new_row)
 			else:
 				print("NAME ERROR, CFDA: ", temp_cfda_list[i])
-				#self.pretty_print_server_response()
+				# self.pretty_print_server_response()
 				new_row.append('NULL')
 				error_cfda_list.append(temp_cfda_list[i])
 				self.cfda_and_name_list.append(new_row)
@@ -274,7 +314,7 @@ class APIOperator(object):
 		print("washington TNC analysis commencing...")
 		tnc_data = read_csv(tnc_ref_csv_file)
 		wp_cfda_list = read_column_from_file('../live/Updated_CFDA_list_noDuplicates.txt')
-		#print("tnc data from file: ", tnc_data)
+		# print("tnc data from file: ", tnc_data)
 		print("wp cfda list: ", wp_cfda_list)
 		tnc_data[0].insert(3, 'CFDA Name')
 		tnc_data[0].insert(4, 'Total Spending')
@@ -299,13 +339,13 @@ class APIOperator(object):
 				unique = 'TRUE'
 				if row[2] in wp_cfda_list:
 					unique = 'FALSE'
-				#print("full row: ", row)
+				# print("full row: ", row)
 				'''
 				temp_row = row[:3] + state_info_for_cfda + row[10::]
 				temp_row[9] = unique'''
 				print("temp row initial: ", temp_row)
 				for i in range(6):
-					temp_row[i+3] = state_info_for_cfda[i]
+					temp_row[i + 3] = state_info_for_cfda[i]
 				temp_row[9] = unique
 				print("new row: ", temp_row)
 				final_list.append(temp_row)
@@ -315,3 +355,190 @@ class APIOperator(object):
 				print("something went wrong")
 
 		write_csv_list_to_file(final_list, save_as_file)
+
+	def pull_records_by_county(self, county_ref_file):
+		cfda_num_array = self.read_cfda_list_from_file('../../data/reference/TNC_CFDA_list_formatted.txt')
+		# print(cfda_num_array)
+		county_ref_info = read_csv(county_ref_file)
+		wp_category_info = read_csv('../../data/reference/TNC_list_all_yrs_WA_analysis - re-integrate.csv')
+
+		# print("wp cat info: ", wp_category_info)
+		print("county ref info: ", county_ref_info)
+		url = self.make_url('spending_by_award')
+		# print("body access testing: ", self.body['filters']['place_of_performance_locations'][0]['county'])
+		# print("county ref access test: ", county_ref_info[1][1:3:])
+		# we start at the first cfda
+		current_cfda_index = 0
+		current_county_index = 1
+		county_list_length = len(county_ref_info)
+		# make the first POST req
+		# response_from_server = POST(url, body)
+		# retrieve JSON from response
+		# json_response = JSON_ify(response_from_server)
+		# print(response_from_server.status_code)
+		# update the cfda number we're working with right now
+		curr_cfda_num = cfda_num_array[current_cfda_index]
+		print(curr_cfda_num)
+		# should be the first cfda number in the list
+		curr_cfda_file = self.set_cfda_filename(curr_cfda_num)
+		print(curr_cfda_file)
+		# save the file initially
+		# Write_CSV(json_response, curr_cfda_file)
+		# length of list of cfda nums
+		cfda_list_length = len(cfda_num_array)
+		# loop control
+		downloading = True
+		# iterate pages, we start at 2 because the first req asked
+		# for the first page of the first cfda num
+		page_to_request = 1
+		is_first_contact = True
+		file_written = False
+		counties_complete = False
+		response_from_server = requests.models.Response()
+
+		while downloading and current_cfda_index < cfda_list_length:
+
+			if response_from_server.status_code == 200 or is_first_contact:
+				if is_first_contact:
+					is_first_contact = False
+				response_from_server = self.post_req_newpage(url, page_to_request)
+				self.jsonify()
+				json_response = self.server_resp_json
+				# print("\n\n json_response: ", json_response)
+				#self.pretty_print_server_response()
+				response_page = json_response['page_metadata']['page']
+				has_next_page = json_response['page_metadata']['hasNext']
+				# print("response page: ", response_page)
+
+				if not file_written and json_response['results']:
+					write_new_cfda_csv_file(
+						json_response, curr_cfda_file,
+						insert_list=county_ref_info[current_county_index][1:3:])
+					file_written = True
+				elif file_written:
+					try:
+						append_cfda_csv_file(
+							json_response, curr_cfda_file,
+							insert_list=county_ref_info[current_county_index][1:3:])
+					except UnicodeEncodeError:
+						print("unicode encode error")
+
+				if has_next_page:
+					downloading = True
+					page_to_request += 1
+				elif current_county_index <= county_list_length and not counties_complete:
+					print("END OF COUNTY: ", county_ref_info[current_county_index])
+					if not counties_complete:
+						try:
+							self.update_request_body_county(county_ref_info[current_county_index + 1][1])
+							current_county_index += 1
+							print("new county index: ", current_county_index)
+						except IndexError:
+							print("\n-----------------------ALL COUNTIES COMPLETE FOR THIS CFDA")
+							counties_complete = True
+					page_to_request = 1
+				else:
+					print("END OF CFDA:  ", curr_cfda_num)
+					try:
+						curr_cfda_num = cfda_num_array[current_cfda_index + 1]
+						current_cfda_index += 1
+						body = self.update_request_body_cfda(curr_cfda_num)
+						curr_cfda_file = self.set_cfda_filename(curr_cfda_num)
+						page_to_request = 1
+						print("NEW CFDA: ")
+						print(curr_cfda_num)
+						current_county_index = 1
+						file_written = False
+						counties_complete = False
+					except IndexError:
+						print("\n--------- CFDA LIST COMPLETE ")
+
+
+			# if things did not go smoothly
+			else:
+				print("NOW PRINTING ENTIRE RESPONSE AS ERROR:")
+				print(type(response_from_server))
+				# This will print the entire response from the server, not just the JSON
+				data = dump.dump_all(response_from_server)
+				print(data.decode('utf-8'))
+				files = data.decode('utf-8')
+				downloading = False
+
+	# sleep(1)
+
+	def individual_county_check(self, cfda, county_fips):
+		amount = 0.00
+		self.update_request_body_county(county_fips)
+		self.update_request_body_cfda(cfda)
+
+		resp = self.post_req_newpage(self.make_url('spending_by_award'), 1)
+		self.pretty_print_server_response()
+		print("\n -----now for state only\n")
+		temp_body = {
+			"filters": {
+				"time_period": [
+					{"start_date": "2012-10-01", "end_date": "2013-09-30"},
+					{"start_date": "2013-10-01", "end_date": "2014-09-30"},
+					{"start_date": "2014-10-01", "end_date": "2015-09-30"},
+					{"start_date": "2015-10-01", "end_date": "2016-09-30"},
+					{"start_date": "2016-10-01", "end_date": "2017-09-30"},
+					{"start_date": "2017-10-01", "end_date": "2018-09-30"},
+					{"start_date": "2007-10-01", "end_date": "2008-09-30"},
+					{"start_date": "2018-10-01", "end_date": "2019-09-30"},
+					{"start_date": "2008-10-01", "end_date": "2009-09-30"},
+					{"start_date": "2019-10-01", "end_date": "2020-09-30"},
+					{"start_date": "2009-10-01", "end_date": "2010-09-30"},
+					{"start_date": "2020-10-01", "end_date": "2021-09-30"},
+					{"start_date": "2010-10-01", "end_date": "2011-09-30"},
+					{"start_date": "2011-10-01", "end_date": "2012-09-30"}
+				],
+				"award_type_codes": [
+					"02", "03", "04", "05"
+				],
+				"place_of_performance_locations": [
+					{
+						"country": "USA",
+						"state": "WA"
+					}
+				],
+				"program_numbers": [
+					"10.072"
+				]
+			},
+			"fields": [
+				"Award ID", "Recipient Name", "Start Date", "End Date", "Award Amount", "Description", "def_codes",
+				"Awarding Agency", "Awarding Sub Agency", "Award Type",
+				"recipient_id", "prime_award_recipient_id", "CFDA Number", "Place of Performance State Code",
+				"Place of Performance Country Code", "Place of Performance Zip5", "Place of Performance City Code",
+				"Funding Agency Code", "Recipient DUNS Number", "Awarding Agency Code",
+				"Start Date", "End Date", "SAI Number", "Base Obligation Date", "generated_internal_id",
+				"Issued Date", "Last Modified Date"
+			],
+			"page": 1,
+			"limit": 100,
+			"sort": "Award Amount",
+			"order": "desc",
+			"subawards": False
+		}
+		#resp = self.post_req_newpage(self.make_url('spending_by_award'), 1, temp_body)
+		#self.pretty_print_server_response()
+
+		for county in self.wa_county_names:
+			print("county INFO: ", county, " ", county[1])
+			self.update_request_body_county(county[1])
+			resp = self.post_req_newpage(self.make_url('spending_by_award'), 1)
+			self.jsonify()
+			if self.server_resp_json['results']:
+				self.pretty_print_server_response()
+				for entry in self.server_resp_json['results']:
+					amount += float(entry['Award Amount'])
+		print("TOTAL AMOUNT: ", amount)
+		print("\n  Done with County Check")
+
+'''
+	def award_download_state_county(self, tnc_ref_csv_file,
+									state_analysis_path,
+									save_as_file,
+									state=''):
+		print("\n AWARD DOWNLOAD")
+'''
