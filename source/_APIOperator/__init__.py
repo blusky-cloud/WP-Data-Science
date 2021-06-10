@@ -414,8 +414,12 @@ class APIOperator(object):
 					write_new_cfda_csv_file(
 						json_response, curr_cfda_file,
 						insert_list=county_ref_info[current_county_index][1:3:])
+					print("county info for file written: ", county_ref_info[current_county_index][1:3:])
 					file_written = True
-				elif file_written:
+					if county_ref_info[current_county_index][1] == '011':
+						print("\n\nCLARK COUNTY")
+						break
+				elif file_written and json_response['results']:
 					try:
 						append_cfda_csv_file(
 							json_response, curr_cfda_file,
@@ -481,7 +485,8 @@ class APIOperator(object):
 			resp = self.post_req_newpage(self.make_url('spending_by_award'), 1)
 			self.jsonify()
 			if self.server_resp_json['results']:
-				self.pretty_print_server_response()
+				#self.pretty_print_server_response()
+				self.pretty_print_server_data()
 				for entry in self.server_resp_json['results']:
 					amount += float(entry['Award Amount'])
 		print("TOTAL AMOUNT: ", amount)
