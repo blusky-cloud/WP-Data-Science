@@ -37,12 +37,11 @@ class APIOperator(object):
 			"place_of_performance_locations": [
 				{
 					"country": "USA",
-					"state": "WA",
-					"county": "001"
+					"state": "WA"
 				}
 			],
 			"program_numbers": [
-				"10.001"
+				"10.923"
 			]
 		},
 		"fields": [
@@ -191,9 +190,14 @@ class APIOperator(object):
 			print("NOW PRINTING NICELY FORMATTED JSON ")
 			print(json_formatted_str)
 
-	def test_request(self):
-		self.post_request('all_cfda_totals')
-		self.pretty_print_server_response()
+	def test_request(self, b={}):
+		if not b:
+			self.post_request('spending_by_award')
+			self.pretty_print_server_response()
+		elif b:
+			self.body = b
+			self.post_request('spending_by_award')
+			self.pretty_print_server_response()
 
 	# method for a POST taking endpoint whose response includes the names for the cfda nums searched
 	def spending_by_category_cfda(self, body={}, display=True):
@@ -215,10 +219,11 @@ class APIOperator(object):
 	def all_cfda_totals(self, display=True):
 		print("all cfda totals")
 		headers = {'Content-Type': 'application/json'}
-		api_name = 'all_cfda_totals'
+
+		api_name = 'spending_by_award'
 		url_api = self.make_url(api_name)
 		print(f"url_api: {url_api}")
-		r = requests.get(url_api)
+		r = requests.post(url_api)
 		if display:
 			json_from_server = r.json()
 			res_bytes = json.dumps(json_from_server).encode('utf-8')
