@@ -310,7 +310,7 @@ class APIOperator(object):
 				new_row = row[4::]
 		return new_row
 
-	def washington_tnc_analysis(self, tnc_ref_csv_file, state_analysis_path, save_as_file):
+	def washington_tnc_analysis(self, tnc_ref_csv_file, save_as_file):
 		print("washington TNC analysis commencing...")
 		tnc_data = read_csv(tnc_ref_csv_file)
 		wp_cfda_list = read_column_from_file('../live/Updated_CFDA_list_noDuplicates.txt')
@@ -333,7 +333,7 @@ class APIOperator(object):
 				temp_row = row
 				for i in range(3, 10):
 					temp_row.insert(i, 'X')
-				cfda_info = read_csv(self.set_state_state_filename(row[2]))
+				cfda_info = read_csv(self.set_state_cfda_filename(row[2]))
 				state_info_for_cfda = self.find_state_info('WA', cfda_info)
 				print("state info for cfda: ", state_info_for_cfda)
 				unique = 'TRUE'
@@ -516,10 +516,11 @@ class APIOperator(object):
 		county_ref_info = read_csv(county_ref_file)
 		wp_category_info = read_csv('../../data/reference/TNC_list_all_yrs_WA_analysis - re-integrate.csv')
 		cfda_num_array = self.read_cfda_list_from_file('../../data/reference/TNC_working_cfda_list.txt')
-		analyzed_county_breakdown = [['CFDA #']]
+		'''analyzed_county_breakdown = [['CFDA #']]
 		for i in range(3, 7):
 			analyzed_county_breakdown[0].append(wp_category_info[0][i])
-		print("county breakdown: ", analyzed_county_breakdown)
+		print("county breakdown: ", analyzed_county_breakdown)'''
+
 		for county in county_ref_info[1::]:
 			wp_category_info[0].append(county[2] + ' Total Spending')
 			wp_category_info[0].append(county[2] + ' Total Rank')

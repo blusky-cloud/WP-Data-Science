@@ -36,3 +36,4 @@ if __name__ == "__main__":
 	#api.pull_records_by_county(reference_path_root + 'WA FIPS + 2019 pop estimates - Sheet1.csv')
 	#api.individual_county_check('10.072', '001')
 	api.analyze_county_data()
+	#api.washington_tnc_analysis(reference_path_root + 'TNC_list_all_yrs_WA_analysis - re-integrate.csv', 'WA_analysis_firstline_bug_fixed.csv')
