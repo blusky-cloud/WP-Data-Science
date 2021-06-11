@@ -504,6 +504,10 @@ class APIOperator(object):
 		per_cap = round(float(total/pop), 4)
 		return str(per_cap)
 
+	def rank_total_county(self, list_to_search):
+		working_list = list_to_search[20::]
+		print(working_list)
+
 	def analyze_county_data(
 			self,
 			county_ref_file='../../data/reference/WA FIPS + 2019 pop estimates - Sheet1.csv',
@@ -522,22 +526,27 @@ class APIOperator(object):
 			wp_category_info[0].append(county[2] + ' Per Cap Spending')
 			wp_category_info[0].append(county[2] + ' Per Cap Rank')
 
-		for cfda_row in wp_category_info[1:5:]:
+		for cfda_row in wp_category_info[1::]:
 			print("cfda num: ", cfda_row[2])
-			curr_cfda_file_contents = read_csv(self.set_cfda_filename(cfda_row[2]))
-			for county in county_ref_info[1::]:
-				cfda_row.append(self.get_total_county(curr_cfda_file_contents, county[2]))
-				cfda_row.append('x')
-				cfda_row.append(self.get_per_cap_county(curr_cfda_file_contents, county[2], county[3]))
-				cfda_row.append('x')
-			#print("file cfda contents: ", curr_cfda_file_contents)
-			print("total spending for cfda ", cfda_row[2], ": ", cfda_row[9])
-			total_spend_check = 0.00
-			for index in cfda_row[20::4]:
-				total_spend_check += float(index)
-				#print("index: ", index)
-			print("added up: ", total_spend_check)
-			if total_spend_check != float(cfda_row[9]):
-				print("ERROR")
-				print("difference: ", round(total_spend_check - float(cfda_row[9]), 3))
+			try:
+				curr_cfda_file_contents = read_csv(self.set_cfda_filename(cfda_row[2]))
+				for county in county_ref_info[1::]:
+					cfda_row.append(self.get_total_county(curr_cfda_file_contents, county[2]))
+					cfda_row.append('x')
+					cfda_row.append(self.get_per_cap_county(curr_cfda_file_contents, county[2], county[3]))
+					cfda_row.append('x')
+				# print("file cfda contents: ", curr_cfda_file_contents)
+				print("total spending for cfda ", cfda_row[2], ": ", cfda_row[9])
+				total_spend_check = 0.00
+				for index in cfda_row[20::4]:
+					total_spend_check += float(index)
+				# print("index: ", index)
+				print("added up: ", total_spend_check)
+				if total_spend_check != float(cfda_row[9]):
+					print("ERROR")
+					print("difference: ", round(total_spend_check - float(cfda_row[9]), 3))
+			except FileNotFoundError:
+				print("CFDA file missing")
+				pass
+		write_csv_list_to_file(wp_category_info, 'County_Total_and_PerCap_Vals_no_Ranks.csv')
 		print("\n\nupdated headers: ", wp_category_info[1])
