@@ -12,7 +12,8 @@ cfda_names_file = '../../data/reference/TNC_CFDA_Names.csv'
 csv_file_name = 'CFDA_'
 state_csv_file_name = 'state_CFDA_'
 curr_cfda_file = data_file_path + csv_file_name
-
+WA_recipient_path = '../../data/TNC_CFDA_list/WA_records_for_each_cfda/'
+WA_recipient_results = '../../data/analysis/WArecipientresults.csv'
 
 def set_CFDA_filename(cfda):
 	cfda_file = data_file_path + csv_file_name + str(cfda).replace('.', '') + '.csv'

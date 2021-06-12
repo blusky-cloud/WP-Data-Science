@@ -10,7 +10,7 @@ from time import sleep
 # This only works if you have data and testing folders like in this repository
 # If you're running this locally, just keep the name in the save_json_to_file function
 # As "data_file_name" and it will save in whatever folder the python script is stored
-data_file_path = '../../data/TNC_CFDA_list/all_records_for_each_cfda_number/'
+data_file_path = '../../data/TNC_CFDA_list/WA_records_for_each_cfda/'
 csv_file_name = 'CFDA_'
 curr_cfda_file = data_file_path + csv_file_name
 print(curr_cfda_file)
@@ -154,6 +154,12 @@ body = {
 		],
 		"award_type_codes": [
 			"02", "03", "04", "05"
+		],
+		"recipient_locations": [
+				{
+					"country": "USA",
+					"state": "WA"
+				}
 		],
 		"program_numbers": [
 			"10.001"

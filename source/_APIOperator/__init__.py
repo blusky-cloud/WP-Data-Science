@@ -34,7 +34,7 @@ class APIOperator(object):
 			"award_type_codes": [
 				"02", "03", "04", "05"
 			],
-			"place_of_performance_locations": [
+			"recipient_locations": [
 				{
 					"country": "USA",
 					"state": "WA"
@@ -115,10 +115,10 @@ class APIOperator(object):
 
 	def update_request_body_county(self, county_code, b=None):
 		if b is not None:
-			b['filters']['place_of_performance_locations'][0]['county'] = county_code
+			b['filters']['recipient_locations'][0]['county'] = county_code
 			return b
 		else:
-			self.body['filters']['place_of_performance_locations'][0]['county'] = county_code
+			self.body['filters']['recipient_locations'][0]['county'] = county_code
 			return self.body
 
 	def post_request(self, endpoint):
@@ -434,14 +434,14 @@ class APIOperator(object):
 					downloading = True
 					page_to_request += 1
 				elif current_county_index <= county_list_length and not counties_complete:
-					print("END OF COUNTY: ", county_ref_info[current_county_index])
+					#print("END OF COUNTY: ", county_ref_info[current_county_index])
 					if not counties_complete:
 						try:
 							self.update_request_body_county(county_ref_info[current_county_index + 1][1])
 							current_county_index += 1
-							print("new county index: ", current_county_index)
+							#print("new county index: ", current_county_index)
 						except IndexError:
-							print("\n-----------------------ALL COUNTIES COMPLETE FOR THIS CFDA")
+							#print("\n-----------------------ALL COUNTIES COMPLETE FOR THIS CFDA")
 							counties_complete = True
 					page_to_request = 1
 				else:
@@ -551,6 +551,7 @@ class APIOperator(object):
 				if total_spend_check != float(cfda_row[9]):
 					print("ERROR")
 					print("difference: ", round(total_spend_check - float(cfda_row[9]), 3))
+					
 			except FileNotFoundError:
 				print("CFDA file missing")
 				pass

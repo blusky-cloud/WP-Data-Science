@@ -15,6 +15,8 @@ def find_washington_info(state_list, w_list):
 			new_row.append(row[5])
 			new_row.append(row[6])
 			new_row.append(row[7])
+			new_row.append(row[8])
+
 			print("new_row: ", new_row)
 			w_list.append(new_row)
 	return w_list
@@ -32,7 +34,7 @@ cfda_array = p.Read_CFDA_Nums_From_File(p.cfda_list_file)
 print("--------------------------------------------------")
 washington_list = [
 	[
-		'CFDA', 'Total Spending',
+		'CFDA', 'CFDA Name', 'Total Spending',
 		'Total Spending Rank', 'Per Capita Spending', 'Per Capita Spending Rank'
 	]
 ]
