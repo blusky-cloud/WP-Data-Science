@@ -102,3 +102,65 @@ def unicode_encode_award_ids(id):
 		log.write(id)
 		log.write("\n")
 	log.close()
+
+
+def append_sum_strs(qty, addend):
+	#print(" APPEND ADDING, original: ", qty, ", addend: ", addend)
+	fqty = round(float(qty), 6) # trial and error determined 6 places eliminated the long trailing decminal problems
+	faddend = round(float(addend), 6)
+	result = round((fqty + faddend), 3)
+	#print("float converted qty: ", fqty, ", float convert addend: ", faddend, ", float result: ", result)
+	#print("string result: ", str(result))
+	return str(result)
+
+
+def divide_strs(numerator, denominator):
+	#  print(numerator, "/", denominator)
+	n = round(float(numerator), 6)
+	d = round(float(denominator.replace(',', '')))
+	#  print("converted : ", n, "/", d)
+	per_cap = round(n/d, 3)
+	#  print("result (rounded) :", per_cap, ", as str: ", str(per_cap))
+	return str(per_cap)
+
+
+def tally_state_totals(cfda_csv_list, state_list):
+	for row in cfda_csv_list:
+		if row[17] == 'USA':  # index in sublist of country column
+			for state in state_list:
+				if state[2] == row[16]:  # state abbreviation from populations list, and state abbreviation column from cfda csv
+					state[5] = append_sum_strs(state[5], row[5])  # because data is stored as strings
+					state[9] = row[11]
+	return state_list
+
+
+def calculate_per_capita_spending(state_list):
+	for state in state_list:
+		state[7] = divide_strs(state[5], state[1])
+	return state_list
+
+
+def get_per_cap(s):
+	return float(s[7])  # 5th column is per cap spending
+
+
+def get_total_spending(s):
+	return float(s[5])  # 4th column is total spending
+
+
+def rank_states_per_cap_spending(state_list):
+	state_list.sort(key=get_per_cap, reverse=True)
+	# print("sorted: ", state_list)
+	for s in state_list:
+		s[8] = str(state_list.index(s) + 1)
+	# print("state list: ", state_list)
+	return state_list
+
+
+def rank_states_total_spending(state_list):
+	state_list.sort(key=get_total_spending, reverse=True)
+	# print("sorted: ", state_list)
+	for s in state_list:
+		s[6] = str(state_list.index(s) + 1)
+	# print("state list: ", state_list)
+	return state_list

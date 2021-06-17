@@ -12,8 +12,7 @@ cfda_names_file = '../../data/reference/TNC_CFDA_Names.csv'
 csv_file_name = 'CFDA_'
 state_csv_file_name = 'state_CFDA_'
 curr_cfda_file = data_file_path + csv_file_name
-WA_recipient_path = '../../data/TNC_CFDA_list/WA_records_for_each_cfda/'
-WA_recipient_results = '../../data/analysis/WArecipientresults.csv'
+
 
 def set_CFDA_filename(cfda):
 	cfda_file = data_file_path + csv_file_name + str(cfda).replace('.', '') + '.csv'
@@ -137,9 +136,7 @@ print("--------------------------------------------------")
 
 index = 0
 while index < len(cfda_array):
-
-	name_row = cfda_names_list[index + 1]  # have to ignore headers
-	print(cfda_array[index], ", ", name_row[1])
+	print(cfda_array[index])
 	cfda_file_contents = read_csv(set_CFDA_filename(cfda_array[index]))
 	pops_list = read_csv(state_pops_file)
 	per_cap_list = pops_list
@@ -181,7 +178,7 @@ while index < len(cfda_array):
 
 	final_list = per_cap_list[:1:] + per_cap_data
 
-	Write_CSVList(final_list, set_state_CFDA_filename(cfda_array[index]))
+	#Write_CSVList(final_list, set_state_CFDA_filename(cfda_array[index]))
 	index += 1
 
 print("---------------perCapita_each_cfda Operations Complete------------------------")

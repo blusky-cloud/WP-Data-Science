@@ -3,7 +3,7 @@ import requests
 import json
 from requests_toolbelt.utils import dump
 from _api_utils import read_column_from_file, write_csv_list_to_file, write_list_to_file, read_csv, \
-	write_new_cfda_csv_file, append_cfda_csv_file
+	write_new_cfda_csv_file, append_cfda_csv_file, divide_strs, tally_state_totals, calculate_per_capita_spending, get_per_cap
 
 
 class APIOperator(object):
@@ -95,7 +95,7 @@ class APIOperator(object):
 																											 '') + '.csv'
 		return state_cfda_file
 
-	def set_cfda_filename(self, cfda, path='../../data/TNC_CFDA_list/WA_Counties/CFDA_'):
+	def set_cfda_filename(self, cfda, path='../../data/TNC_CFDA_list/WA_Counties_allawards/CFDA_'):
 		self.cfda_file_name = path + str(cfda).replace('.', '') + '.csv'
 		return self.cfda_file_name
 
@@ -400,78 +400,89 @@ class APIOperator(object):
 		file_written = False
 		counties_complete = False
 		response_from_server = requests.models.Response()
+		award_code_sets = [
+			[
+				"02", "03", "04", "05"
+			],
+			[
+				"10", "06"
+			]
+		]
+		new_cfda = True
+		while current_cfda_index < cfda_list_length:
+			for awards in award_code_sets:
+				self.body['filters']['award_type_codes'] = awards
+				downloading = True
+				while downloading:
+					if response_from_server.status_code == 200 or is_first_contact:
+						if is_first_contact:
+							is_first_contact = False
+						response_from_server = self.post_req_newpage(url, page_to_request)
+						self.jsonify()
+						json_response = self.server_resp_json
+						# print("\n\n json_response: ", json_response)
+						# self.pretty_print_server_response()
+						response_page = json_response['page_metadata']['page']
+						has_next_page = json_response['page_metadata']['hasNext']
+						# print("response page: ", response_page)
 
-		while downloading and current_cfda_index < cfda_list_length:
+						if new_cfda and not file_written and json_response['results']:
+							write_new_cfda_csv_file(
+								json_response, curr_cfda_file,
+								insert_list=county_ref_info[current_county_index][1:3:])
+							# print("county info for file written: ", county_ref_info[current_county_index][1:3:])
+							file_written = True
+							new_cfda = False
 
-			if response_from_server.status_code == 200 or is_first_contact:
-				if is_first_contact:
-					is_first_contact = False
-				response_from_server = self.post_req_newpage(url, page_to_request)
-				self.jsonify()
-				json_response = self.server_resp_json
-				# print("\n\n json_response: ", json_response)
-				# self.pretty_print_server_response()
-				response_page = json_response['page_metadata']['page']
-				has_next_page = json_response['page_metadata']['hasNext']
-				# print("response page: ", response_page)
+						elif not new_cfda and file_written and json_response['results']:
+							try:
+								append_cfda_csv_file(
+									json_response, curr_cfda_file,
+									insert_list=county_ref_info[current_county_index][1:3:])
+							except UnicodeEncodeError:
+								print("unicode encode error")
 
-				if not file_written and json_response['results']:
-					write_new_cfda_csv_file(
-						json_response, curr_cfda_file,
-						insert_list=county_ref_info[current_county_index][1:3:])
-					# print("county info for file written: ", county_ref_info[current_county_index][1:3:])
-					file_written = True
-
-				elif file_written and json_response['results']:
-					try:
-						append_cfda_csv_file(
-							json_response, curr_cfda_file,
-							insert_list=county_ref_info[current_county_index][1:3:])
-					except UnicodeEncodeError:
-						print("unicode encode error")
-
-				if has_next_page:
-					downloading = True
-					page_to_request += 1
-				elif current_county_index <= county_list_length and not counties_complete:
-					#print("END OF COUNTY: ", county_ref_info[current_county_index])
-					if not counties_complete:
-						try:
-							self.update_request_body_county(county_ref_info[current_county_index + 1][1])
-							current_county_index += 1
-							#print("new county index: ", current_county_index)
-						except IndexError:
-							#print("\n-----------------------ALL COUNTIES COMPLETE FOR THIS CFDA")
-							counties_complete = True
-					page_to_request = 1
-				else:
-					print("END OF CFDA:  ", curr_cfda_num)
-					try:
-						curr_cfda_num = cfda_num_array[current_cfda_index + 1]
-						current_cfda_index += 1
-						body = self.update_request_body_cfda(curr_cfda_num)
-						curr_cfda_file = self.set_cfda_filename(curr_cfda_num)
-						page_to_request = 1
-						print("NEW CFDA: ")
-						print(curr_cfda_num)
-						current_county_index = 1
-						file_written = False
-						counties_complete = False
-					except IndexError:
-						print("\n--------- CFDA LIST COMPLETE ")
-						break
-
-
-			# if things did not go smoothly
-			else:
-				print("NOW PRINTING ENTIRE RESPONSE AS ERROR:")
-				print(type(response_from_server))
-				# This will print the entire response from the server, not just the JSON
-				data = dump.dump_all(response_from_server)
-				print(data.decode('utf-8'))
-				files = data.decode('utf-8')
-				downloading = False
-
+						if has_next_page:
+							downloading = True
+							page_to_request += 1
+						elif current_county_index <= county_list_length and not counties_complete:
+							#print("END OF COUNTY: ", county_ref_info[current_county_index])
+							if not counties_complete:
+								try:
+									self.update_request_body_county(county_ref_info[current_county_index + 1][1])
+									current_county_index += 1
+									#print("new county index: ", current_county_index)
+								except IndexError:
+									#print("\n-----------------------ALL COUNTIES COMPLETE FOR THIS CFDA")
+									counties_complete = True
+							page_to_request = 1
+						else:
+							downloading = False
+							page_to_request = 1
+					# if things did not go smoothly
+					else:
+						print("NOW PRINTING ENTIRE RESPONSE AS ERROR:")
+						print(type(response_from_server))
+						# This will print the entire response from the server, not just the JSON
+						data = dump.dump_all(response_from_server)
+						print(data.decode('utf-8'))
+						files = data.decode('utf-8')
+						downloading = False
+			try:
+				curr_cfda_num = cfda_num_array[current_cfda_index + 1]
+				current_cfda_index += 1
+				body = self.update_request_body_cfda(curr_cfda_num)
+				curr_cfda_file = self.set_cfda_filename(curr_cfda_num)
+				page_to_request = 1
+				print("NEW CFDA: ")
+				print(curr_cfda_num)
+				current_county_index = 1
+				file_written = False
+				counties_complete = False
+				new_cfda = True
+			except IndexError:
+				print("\n--------- CFDA LIST COMPLETE ")
+				break
 	# sleep(1)
 
 	def individual_county_check(self, cfda, county_fips):
@@ -551,9 +562,11 @@ class APIOperator(object):
 				if total_spend_check != float(cfda_row[9]):
 					print("ERROR")
 					print("difference: ", round(total_spend_check - float(cfda_row[9]), 3))
-					
+
 			except FileNotFoundError:
 				print("CFDA file missing")
 				pass
 		write_csv_list_to_file(wp_category_info, 'County_Total_and_PerCap_Vals_no_Ranks.csv')
 		print("\n\nupdated headers: ", wp_category_info[1])
+
+
