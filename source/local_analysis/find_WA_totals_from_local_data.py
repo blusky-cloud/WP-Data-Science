@@ -18,7 +18,7 @@ def set_path_yr(yr):
 
 
 def set_csv_file(yr, num):
-	return set_path_yr(yr) + yr_prefix + str(yr) + file_name_body + num
+	return set_path_yr(yr) + yr_prefix + str(yr) + file_name_body + str(num) + '.csv'
 
 
 def write_csv_list_to_file(lst, file):
@@ -40,4 +40,4 @@ page = 1
 current_file = set_csv_file(year, page)
 
 data = pd.read_csv(current_file, low_memory=False)
-data.head()
+print(data.head())
