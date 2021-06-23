@@ -440,6 +440,20 @@ def try_dask_allglob(cfda_l):
 	#tnc_states.sum().reset_index().to_csv('Allyrs_dask2.csv', single_file=True)
 	tnc.to_csv('all_years_noSum1_dask2.csv', single_file=True)
 
+
+def get_percap_from_dask(output_f, pops, dask_f):
+	dask_list = read_csv(dask_f)
+
+	dask_list[0].insert(4, 'total_obligated_spending_per_capita')
+	for row in dask_list[1::]:
+		row.insert(4, '0.00')
+
+	for row in dask_list[1::]:
+		for state in pops[1::]:
+			if state[2] == row[2]:
+				row[4] = divide_strs(row[3], state[1])
+	write_csv_list_to_file(dask_list, output_f)
+
 # -------------------------------------------
 #               DO STUFF
 # -------------------------------------------
@@ -458,17 +472,20 @@ write_csv_list_to_file(new_table, output_file)
 year_not_done = True
 df = pd.DataFrame
 str_cfda_list = read_column_from_file(cfda_abs_path)
+state_pops_list = read_csv(state_pops_file)
 cfda_list = []
 for n in str_cfda_list:
 	cfda_list.append(float(n))
 years = [2018, 2020, 2021]
 
-for year in range(2011, 2022):
+get_percap_from_dask('Allyrs_dask2_percap.csv', state_pops_list, 'Allyrs_dask2.csv')
+
+'''for year in range(2011, 2022):
 	try_dask(year, page, cfda_list)
 
 try_dask_allglob(cfda_list)
 
-'''for page in range(5):
+for page in range(5):
 	if page == 0:
 		df = pandas_bites(year, page+1, pandas_save_file, empty_table_file)
 	else:
