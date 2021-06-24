@@ -32,6 +32,7 @@ def set_csv_file(yr, num):
 def set_glob_path_yr(yr):
 	return set_path_yr(yr) + yr_prefix + str(yr) + file_name_body + '*.csv'
 
+
 def write_csv_list_to_file(lst, file):
 	print("writing file")
 	with open(file, 'w', newline='') as csvfile:
@@ -396,6 +397,7 @@ def add_series_vals(first, second):
 		return first + second
 
 
+# this function looks at all the pages for each year to analyze the whole years using wildcards *
 def try_dask(yr, pg, cfda_l):
 	print("try dask")
 	curr_file = set_glob_path_yr(yr)
@@ -417,7 +419,7 @@ def try_dask(yr, pg, cfda_l):
 	#tnc_states.sum().reset_index().to_csv(str(yr) + '_dask2.csv', single_file=True)
 	tnc.to_csv(str(yr) + '_noSum1_dask.csv', single_file=True)
 
-
+# this function looks at all the files simultaneously
 def try_dask_allglob(cfda_l):
 	print("try dask")
 	gl_pth = 'D:/Downloads/AwardDataArchiveAllAgenciesAllAssistance/FY*_All_Assistance_Full_20210607/FY*_All_Assistance_Full_20210608_*.csv'
@@ -432,30 +434,32 @@ def try_dask_allglob(cfda_l):
 		'cfda_number': convert_num_from_str,
 		'recipient_state_code': str
 	}
-#quoting=csv.QUOTE_NONE, error_bad_lines=False, engine='python'
-	#the above args to read_csv prevented an EOF error but slowed things wayyy down
+# quoting=csv.QUOTE_NONE, error_bad_lines=False, engine='python'
+# the above args to read_csv prevented an EOF error but slowed things wayyy down
+	# the current args are slower but seem accurate, the QUOTE NONE produced some results that might be weird
+	#
 	df = dd.read_csv(curr_file, usecols=rel_columns, converters=col_types, engine='python', error_bad_lines=False)
-	tnc = df.loc[df['cfda_number'].isin(cfda_l)]
-	#tnc_states = tnc.groupby(['cfda_number', 'recipient_state_code'])
-	#tnc_states.sum().reset_index().to_csv('Allyrs_dask2.csv', single_file=True)
-	tnc.to_csv('all_years_noSum1_dask2.csv', single_file=True)
-
+	#tnc = df.loc[df['cfda_number'].isin(cfda_l)]
+	tnc_states = df.groupby(['cfda_number', 'recipient_state_code'])  # change df to tnc and uncomment prev line to narrow down cfdas
+	tnc_states.sum().reset_index().to_csv('Allyrs_dask3.csv', single_file=True)
+	#tnc.to_csv('all_years_noSum1_dask2.csv', single_file=True)
+	# above line was to bypass the sum operation
 
 def get_percap_from_dask(output_f, pops, dask_f):
-	re_integrate = read_csv('full_wp_cats.csv')
-	dask_list = read_csv(dask_f)
+	re_integrate = read_csv('full_wp_cats.csv')  # WP categories to add back in
+	dask_list = read_csv(dask_f)  # sums from prev dask operation
 
-	dask_list[0].insert(4, 'total_obligated_spending_per_capita')
+	dask_list[0].insert(4, 'total_obligated_spending_per_capita')  # adding headers
 
-	for row in dask_list[1::]:
+	for row in dask_list[1::]:  # add a column to each row
 		row.insert(4, '0.00')
 
-	for row in dask_list[1::]:
+	for row in dask_list[1::]:  # fill each row with the actual percap value
 		for state in pops[1::]:
 			if state[2] == row[2]:
 				row[4] = divide_strs(row[3], state[1])
 
-	dask_list[0].insert(2, 'cfda_name')
+	dask_list[0].insert(2, 'cfda_name')  # this stuff is to add other data back in
 	dask_list[0].insert(3, 'awarding_sub_agency')
 	dask_list[0].insert(4, 'WP_category')
 	for row in dask_list[1::]:
@@ -468,9 +472,8 @@ def get_percap_from_dask(output_f, pops, dask_f):
 				row[2] = n[3]
 				row[3] = n[5]
 				row[4] = n[7]
-	#body = dask_list[1::].sort(key=return_sublist1)
-	#final_list = dask_list[0] + body
-	write_csv_list_to_file(dask_list, output_f)
+
+	write_csv_list_to_file(dask_list, output_f)  # write it out,
 
 
 def return_sublist1(sublist):
@@ -492,34 +495,32 @@ def rank_dataframe(output_f, input_f):
 # -------------------------------------------
 # make_empty_totals_table()
 print(" Commencing Data Analysis Operations")
-output_file = 'attempt_count_totals2.csv'
-pandas_save_file = 'pandas_2011_attempt1.csv'
-empty_table_file = 'new_table_empty2.csv'
-error_state = False
-year = 2011
-page = 1
-new_table = read_csv('new_table_empty2.csv')
-yr_table = read_csv('new_table_empty2.csv')
-write_csv_list_to_file(new_table, output_file)
 
-year_not_done = True
-df = pd.DataFrame
 str_cfda_list = read_column_from_file(cfda_abs_path)
 state_pops_list = read_csv(state_pops_file)
+
 cfda_list = []
 for n in str_cfda_list:
 	cfda_list.append(float(n))
-years = [2018, 2020, 2021]
 
-
-get_percap_from_dask('Allyrs_dask2_percap3_names_sorted.csv', state_pops_list, 'Allyrs_dask2.csv')
-rank_dataframe('Allyrs_dask2_percap_ranked7.csv', 'Allyrs_dask2_percap3_names_sorted.csv')
-
-'''for year in range(2011, 2022):
+for year in range(2011, 2022):
 	try_dask(year, page, cfda_list)
 
 try_dask_allglob(cfda_list)
 
+get_percap_from_dask('Allyrs_dask2_percap4_names_sorted.csv', state_pops_list, 'Allyrs_dask2.csv')
+rank_dataframe('Allyrs_dask2_percap_ranked8.csv', 'Allyrs_dask2_percap3_names_sorted.csv')
+
+'''
+# the below code is to use pandas dataframes directly. Unfortunately, this did not work super well
+# so I did some more research and found that dask would allow processing of a bunch of massive csv files
+# simultaneously, which is what the uncommented code does.
+error_state = False   
+year = 2011
+page = 1
+
+year_not_done = True
+df = pd.DataFrame
 for page in range(5):
 	if page == 0:
 		df = pandas_bites(year, page+1, pandas_save_file, empty_table_file)
