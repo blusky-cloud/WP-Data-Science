@@ -442,9 +442,11 @@ def try_dask_allglob(cfda_l):
 
 
 def get_percap_from_dask(output_f, pops, dask_f):
+	re_integrate = read_csv('full_wp_cats.csv')
 	dask_list = read_csv(dask_f)
 
 	dask_list[0].insert(4, 'total_obligated_spending_per_capita')
+
 	for row in dask_list[1::]:
 		row.insert(4, '0.00')
 
@@ -452,7 +454,38 @@ def get_percap_from_dask(output_f, pops, dask_f):
 		for state in pops[1::]:
 			if state[2] == row[2]:
 				row[4] = divide_strs(row[3], state[1])
+
+	dask_list[0].insert(2, 'cfda_name')
+	dask_list[0].insert(3, 'awarding_sub_agency')
+	dask_list[0].insert(4, 'WP_category')
+	for row in dask_list[1::]:
+		for i in range(3):
+			row.insert(i+2, 'UNSPECIFIED')
+
+	for row in dask_list[1::]:
+		for n in re_integrate[1::]:
+			if float(n[2]) == float(row[1]):
+				row[2] = n[3]
+				row[3] = n[5]
+				row[4] = n[7]
+	#body = dask_list[1::].sort(key=return_sublist1)
+	#final_list = dask_list[0] + body
 	write_csv_list_to_file(dask_list, output_f)
+
+
+def return_sublist1(sublist):
+	return sublist[1]
+
+
+def rank_dataframe(output_f, input_f):
+	df = pd.read_csv(input_f)
+	print(df.info, df.head)
+	df['total_obligated_rank'] = df.groupby('cfda_number')['total_obligated_amount'].rank(ascending=False)
+	df['total_obligated_per_cap_rank'] = df.groupby('cfda_number')['total_obligated_spending_per_capita'].rank(ascending=False)
+	print(df.info, df.head)
+	df.sort_values('cfda_number').to_csv(output_f)
+	#cfda_group = df.groupby(['cfda_number'])
+	#print(cfda_group.groups)
 
 # -------------------------------------------
 #               DO STUFF
@@ -478,7 +511,9 @@ for n in str_cfda_list:
 	cfda_list.append(float(n))
 years = [2018, 2020, 2021]
 
-get_percap_from_dask('Allyrs_dask2_percap.csv', state_pops_list, 'Allyrs_dask2.csv')
+
+get_percap_from_dask('Allyrs_dask2_percap3_names_sorted.csv', state_pops_list, 'Allyrs_dask2.csv')
+rank_dataframe('Allyrs_dask2_percap_ranked7.csv', 'Allyrs_dask2_percap3_names_sorted.csv')
 
 '''for year in range(2011, 2022):
 	try_dask(year, page, cfda_list)
