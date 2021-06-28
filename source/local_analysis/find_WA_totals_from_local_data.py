@@ -503,13 +503,13 @@ cfda_list = []
 for n in str_cfda_list:
 	cfda_list.append(float(n))
 
-for year in range(2011, 2022):
-	try_dask(year, page, cfda_list)
+#for year in range(2011, 2022):
+	#try_dask(year, page, cfda_list)
 
-try_dask_allglob(cfda_list)
+#try_dask_allglob(cfda_list)
 
-get_percap_from_dask('Allyrs_dask2_percap4_names_sorted.csv', state_pops_list, 'Allyrs_dask2.csv')
-rank_dataframe('Allyrs_dask2_percap_ranked8.csv', 'Allyrs_dask2_percap3_names_sorted.csv')
+get_percap_from_dask('Allyrs_dask2_percap4_names_sorted.csv', state_pops_list, 'Allyrs_dask3.csv')
+rank_dataframe('Allyrs_dask2_percap_ranked8.csv', 'Allyrs_dask2_percap4_names_sorted.csv')
 
 '''
 # the below code is to use pandas dataframes directly. Unfortunately, this did not work super well
