@@ -18,6 +18,8 @@ file_name_body = "_All_Assistance_Full_20210608_"
 tnc_cfda_list_file = "../../data/reference/TNC_CFDA_list_formatted.txt"
 state_pops_file = '2019_state_pops_wAbbrevs.csv'
 cfda_abs_path = "C:/Users/whits/STUFF/WateryWater/Project/WP-Data-Science/data/reference/TNC_CFDA_list_formatted.txt"
+expanded_tnc_cfda_abs_path = "C:/Users/whits/STUFF/WateryWater/Project/WP-Data-Science/data/reference/expanded_TNC_CFDA_list_formatted.txt"
+nodups_exp_cfda_list = "C:/Users/whits/STUFF/WateryWater/Project/WP-Data-Science/data/reference/nodups_exp_tnc_cfda_list.txt"
 pops_rel_path = "WP-Data-Science/source/local_analysis/2019_state_pops_wAbbrevs.csv"
 
 
@@ -398,7 +400,7 @@ def add_series_vals(first, second):
 
 
 # this function looks at all the pages for each year to analyze the whole years using wildcards *
-def try_dask(yr, pg, cfda_l):
+def try_dask(yr, cfda_l):
 	print("try dask")
 	curr_file = set_glob_path_yr(yr)
 	print(curr_file)
@@ -415,9 +417,9 @@ def try_dask(yr, pg, cfda_l):
 	#the above args to read_csv prevented an EOF error but slowed things wayyy down
 	df = dd.read_csv(curr_file, usecols=rel_columns, converters=col_types, engine='python', error_bad_lines=False)
 	tnc = df.loc[df['cfda_number'].isin(cfda_l)]
-	#tnc_states = tnc.groupby(['cfda_number', 'recipient_state_code'])
-	#tnc_states.sum().reset_index().to_csv(str(yr) + '_dask2.csv', single_file=True)
-	tnc.to_csv(str(yr) + '_noSum1_dask.csv', single_file=True)
+	tnc_states = tnc.groupby(['cfda_number', 'recipient_state_code'])
+	tnc_states.sum().reset_index().to_csv(str(yr) + '_dask2.csv', single_file=True)
+	#tnc.to_csv(str(yr) + '_noSum1_dask.csv', single_file=True)
 
 # this function looks at all the files simultaneously
 def try_dask_allglob(cfda_l):
@@ -441,7 +443,7 @@ def try_dask_allglob(cfda_l):
 	df = dd.read_csv(curr_file, usecols=rel_columns, converters=col_types, engine='python', error_bad_lines=False)
 	#tnc = df.loc[df['cfda_number'].isin(cfda_l)]
 	tnc_states = df.groupby(['cfda_number', 'recipient_state_code'])  # change df to tnc and uncomment prev line to narrow down cfdas
-	tnc_states.sum().reset_index().to_csv('Allyrs_dask3.csv', single_file=True)
+	tnc_states.sum().reset_index().to_csv('Allyrs_dask4.csv', single_file=True)
 	#tnc.to_csv('all_years_noSum1_dask2.csv', single_file=True)
 	# above line was to bypass the sum operation
 
@@ -496,20 +498,20 @@ def rank_dataframe(output_f, input_f):
 # make_empty_totals_table()
 print(" Commencing Data Analysis Operations")
 
-str_cfda_list = read_column_from_file(cfda_abs_path)
+str_cfda_list = read_column_from_file(nodups_exp_cfda_list)
 state_pops_list = read_csv(state_pops_file)
 
 cfda_list = []
 for n in str_cfda_list:
 	cfda_list.append(float(n))
 
-#for year in range(2011, 2022):
-	#try_dask(year, page, cfda_list)
+for year in range(2011, 2022):
+	try_dask(year, cfda_list)
 
-#try_dask_allglob(cfda_list)
+try_dask_allglob(cfda_list)
 
-get_percap_from_dask('Allyrs_dask2_percap4_names_sorted.csv', state_pops_list, 'Allyrs_dask3.csv')
-rank_dataframe('Allyrs_dask2_percap_ranked8.csv', 'Allyrs_dask2_percap4_names_sorted.csv')
+get_percap_from_dask('Allyrs_dask2_percap5_names_sorted.csv', state_pops_list, 'Allyrs_dask4.csv')
+rank_dataframe('Allyrs_dask2_percap_ranked9.csv', 'Allyrs_dask2_percap5_names_sorted.csv')
 
 '''
 # the below code is to use pandas dataframes directly. Unfortunately, this did not work super well
