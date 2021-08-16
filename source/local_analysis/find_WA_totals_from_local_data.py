@@ -21,7 +21,7 @@ cfda_abs_path = "C:/Users/whits/STUFF/WateryWater/Project/WP-Data-Science/data/r
 expanded_tnc_cfda_abs_path = "C:/Users/whits/STUFF/WateryWater/Project/WP-Data-Science/data/reference/expanded_TNC_CFDA_list_formatted.txt"
 nodups_exp_cfda_list = "C:/Users/whits/STUFF/WateryWater/Project/WP-Data-Science/data/reference/nodups_exp_tnc_cfda_list.txt"
 pops_rel_path = "WP-Data-Science/source/local_analysis/2019_state_pops_wAbbrevs.csv"
-
+exp_tnc_buckets = "C:/Users/whits/STUFF/WateryWater/Project/WP-Data-Science/data/reference/exp_tnc_buckets.csv"
 
 def set_path_yr(yr):
 	return data_root + yr_prefix + str(yr) + yr_suffix
@@ -61,8 +61,11 @@ def read_csv(file):
 	arr = []
 	with open(file, newline='') as csvfile:
 		reader = csv.reader(csvfile)
-		for row in reader:
-			arr.append(row)
+		try:
+			for row in reader:
+				arr.append(row)
+		except UnicodeDecodeError:
+			print("decode error reading CSV: ", row)
 	csvfile.close()
 	return arr
 
@@ -240,7 +243,7 @@ def check_exceptions(new_table, year, page, yr_table, verbose=True):
 	print("Check Exceptions")
 	str_cfda_list = read_column_from_file(cfda_abs_path)
 	cfda_list = []
-	err_case = False
+	error_state = False
 	for n in str_cfda_list:
 		cfda_list.append(float(n))
 	# print("cfda list elem type: ", type(cfda_list[1]), " ", cfda_list[1])
@@ -418,13 +421,42 @@ def try_dask(yr, cfda_l):
 	df = dd.read_csv(curr_file, usecols=rel_columns, converters=col_types, engine='python', error_bad_lines=False)
 	tnc = df.loc[df['cfda_number'].isin(cfda_l)]
 	tnc_states = tnc.groupby(['cfda_number', 'recipient_state_code'])
-	tnc_states.sum().reset_index().to_csv(str(yr) + '_dask2.csv', single_file=True)
+	tnc_states.sum().reset_index().to_csv(str(yr) + '_dask4.csv', single_file=True)
 	#tnc.to_csv(str(yr) + '_noSum1_dask.csv', single_file=True)
 
 # this function looks at all the files simultaneously
 def try_dask_allglob(cfda_l):
 	print("try dask")
-	gl_pth = 'D:/Downloads/AwardDataArchiveAllAgenciesAllAssistance/FY*_All_Assistance_Full_20210607/FY*_All_Assistance_Full_20210608_*.csv'
+	gl_pth = 'E:/Downloads/AwardDataArchiveAllAgenciesAllAssistance/FY*_All_Assistance_Full_20210607/FY*_All_Assistance_Full_20210608_*.csv'
+	curr_file = gl_pth
+	print(curr_file)
+	rel_columns = [7, 8, 9, 10, 47, 48, 49, 68]
+	col_types = {
+		'total_obligated_amount': convert_num_from_str,
+		'non_federal_funding_amount': convert_num_from_str,
+		'total_non_federal_funding_amount': convert_num_from_str,
+		'face_value_of_loan': convert_num_from_str,
+		'cfda_number': convert_num_from_str,
+		'recipient_state_code': str,
+		'recipient_county_code': convert_num_from_str,
+		'recipient_county_name': str
+	}
+# quoting=csv.QUOTE_NONE, error_bad_lines=False, engine='python'
+# the above args to read_csv prevented an EOF error but slowed things wayyy down
+	# the current args are slower but seem accurate, the QUOTE NONE produced some results that might be weird
+	#
+	df = dd.read_csv(curr_file, usecols=rel_columns, converters=col_types, engine='python', error_bad_lines=False)
+	tnc = df.loc[df['cfda_number'].isin(cfda_l)]
+	tnc_states = tnc.groupby(['cfda_number', 'recipient_state_code', 'recipient_county_name'])  # change df to tnc and uncomment prev line to narrow down cfdas
+	tnc_states.sum().reset_index().to_csv('Allyrs_counties_1.csv', single_file=True)
+	#tnc.to_csv('all_years_noSum1_dask2.csv', single_file=True)
+	# above line was to bypass the sum operation
+
+
+#this function is to get the total spending for the CFDAs from all states
+def dask_top_ten(cfda_l):
+	print("top 10")
+	gl_pth = 'E:/Downloads/AwardDataArchiveAllAgenciesAllAssistance/FY*_All_Assistance_Full_20210607/FY*_All_Assistance_Full_20210608_*.csv'
 	curr_file = gl_pth
 	print(curr_file)
 	rel_columns = [7, 8, 9, 10, 49, 68]
@@ -436,17 +468,18 @@ def try_dask_allglob(cfda_l):
 		'cfda_number': convert_num_from_str,
 		'recipient_state_code': str
 	}
-# quoting=csv.QUOTE_NONE, error_bad_lines=False, engine='python'
-# the above args to read_csv prevented an EOF error but slowed things wayyy down
+	# quoting=csv.QUOTE_NONE, error_bad_lines=False, engine='python'
+	# the above args to read_csv prevented an EOF error but slowed things wayyy down
 	# the current args are slower but seem accurate, the QUOTE NONE produced some results that might be weird
 	#
 	df = dd.read_csv(curr_file, usecols=rel_columns, converters=col_types, engine='python', error_bad_lines=False)
-	#tnc = df.loc[df['cfda_number'].isin(cfda_l)]
-	tnc_states = df.groupby(['cfda_number', 'recipient_state_code'])  # change df to tnc and uncomment prev line to narrow down cfdas
-	tnc_states.sum().reset_index().to_csv('Allyrs_dask4.csv', single_file=True)
-	#tnc.to_csv('all_years_noSum1_dask2.csv', single_file=True)
-	# above line was to bypass the sum operation
+	tnc = df.loc[df['cfda_number'].isin(cfda_l)]
+	tnc_states = tnc.groupby('cfda_number')  # group by cfda
+	tnc_states.sum().reset_index().to_csv('Allyrs_counties_1.csv', single_file=True)
 
+
+# tnc.to_csv('all_years_noSum1_dask2.csv', single_file=True)
+# above line was to bypass the sum operation
 def get_percap_from_dask(output_f, pops, dask_f):
 	re_integrate = read_csv('full_wp_cats.csv')  # WP categories to add back in
 	dask_list = read_csv(dask_f)  # sums from prev dask operation
@@ -500,20 +533,76 @@ print(" Commencing Data Analysis Operations")
 
 str_cfda_list = read_column_from_file(nodups_exp_cfda_list)
 state_pops_list = read_csv(state_pops_file)
+buckets = read_csv(exp_tnc_buckets)
 
 cfda_list = []
 for n in str_cfda_list:
 	cfda_list.append(float(n))
 
-for year in range(2011, 2022):
-	try_dask(year, cfda_list)
+#for year in range(2011, 2022):
+	#try_dask(year, cfda_list)
 
-try_dask_allglob(cfda_list)
+#try_dask_allglob(cfda_list)
+#get_percap_from_dask('Allyrs_dask_percap11_names_sorted.csv', state_pops_list, 'Allyrs_dask6.csv')
+#rank_dataframe('Allyrs_dask_percap_ranked11.csv', 'Allyrs_dask_percap11_names_sorted.csv')
 
-get_percap_from_dask('Allyrs_dask2_percap5_names_sorted.csv', state_pops_list, 'Allyrs_dask4.csv')
-rank_dataframe('Allyrs_dask2_percap_ranked9.csv', 'Allyrs_dask2_percap5_names_sorted.csv')
+#dask_top_ten(cfda_list)
+re_integrate = read_csv('full_wp_cats.csv')
+dask_list = read_csv('Allyrs_counties_1.csv')  # sums from prev dask operation
+print(dask_list)
+dask_list[0].insert(2, 'cfda_name')  # this stuff is to add other data back in
+dask_list[0].insert(3, 'awarding_sub_agency')
+dask_list[0].insert(4, 'WP_category')
+for row in dask_list[1::]:
+	for i in range(3):
+		row.insert(i+2, 'UNSPECIFIED')
+print(dask_list)
+print("here: ", re_integrate[1][2])
+print("re integrate 1: ", re_integrate[1])
+re = 0
 
+for row in dask_list[1::]:
+	print("dask list row: ", row)
+	for n in re_integrate[1::]:
+		print("another: ", n[2])
+		try:
+			re = float(n[2])
+			print("success ", re)
+		except ValueError:
+			print("error: ", n[2])
+			re = 0
+
+		print(re)
+		print("dask list another ROW  ", row[1])
+		print(row)
+		r = float(row[1])
+		if re == r:
+			row[2] = n[3]
+			row[3] = n[5]
+			row[4] = n[7]
+
+write_csv_list_to_file(dask_list, 'ALlyrs_county_cats_1.csv')
 '''
+
+newranked = read_csv('Allyrs_dask_percap_ranked11.csv')
+newranked[0].insert(2, 'Bucket')
+newranked[0].insert(3, 'State Agency Getting Funding per OMB database')
+
+for row in newranked[1::]:
+	row.insert(2, 'UNSPECIFIED')
+	row.insert(3, 'UNSPECIFIED')
+
+for row in newranked[1::]:
+	for b in buckets[2::]:
+		if b[4] != 'UNSPECIFIED' and row[4] != 'UNSPECIFIED':
+			if float(b[4]) == float(row[4]):
+				if b[2] != '' and b[2] is not None:
+					row[2] = b[2]
+				if b[3] != '' and b[2] is not None:
+					row[3] = b[3]
+write_csv_list_to_file(newranked, 'Allyrs_dask_ranked12_buckets.csv')
+
+
 # the below code is to use pandas dataframes directly. Unfortunately, this did not work super well
 # so I did some more research and found that dask would allow processing of a bunch of massive csv files
 # simultaneously, which is what the uncommented code does.
