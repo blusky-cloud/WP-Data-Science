@@ -1,5 +1,5 @@
 ## WP-Data-Science
-Code developed by S. Whitman Spitzer under contract for Willamette Partnership. This is a repository for code relating to the analysis of Federal Spending Data using Python, undertaken for Willamette Partnership.
+Code developed by Grace Blue Spitzer under contract for Willamette Partnership. This is a repository for code relating to the analysis of Federal Spending Data using Python, undertaken for Willamette Partnership.
 
 # Willamette Partnership
 Website: [Willamette Partnership](https://willamettepartnership.org/), Twitter: @Willamette_P
