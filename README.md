@@ -7,5 +7,5 @@ Website: [Willamette Partnership](https://willamettepartnership.org/), Twitter: 
 ### Dependencies
 Development has been in a virtual environment in the PyCharm IDE. The dependencies used by the code thus far can be installed with the following command line (terminal) arguments:
 ```bash
-pip install requests && pip install requests-toolbelt && pip install pandas && pip install beautifulsoup4
+pip install requests && pip install requests-toolbelt && pip install pandas && pip install beautifulsoup4 && python -m pip install "dask[complete]"  
 ```
