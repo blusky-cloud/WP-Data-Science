@@ -9,3 +9,6 @@ Development has been in a virtual environment in the PyCharm IDE. The dependenci
 ```bash
 pip install requests && pip install requests-toolbelt && pip install pandas && pip install beautifulsoup4 && python -m pip install "dask[complete]"  
 ```
+
+### Note
+If you're looking for the stuff that was actually working, check source/local_analysis/find_WA_totals_from_local_data.py
